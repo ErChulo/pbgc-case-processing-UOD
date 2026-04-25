@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Defined Terms Flow Graph — Saint Rose v0.8</title>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #121820;
+    --panel2: #0f141b;
+    --line: #263241;
+    --text: #eef2f7;
+    --muted: #a6b0bb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 390px; min-height: 100vh; }
+  .main { padding: 18px; }
+  .sidebar {
+    border-left: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--panel), var(--panel2));
+    padding: 18px;
+    overflow: auto;
+  }
+  .title-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  h1 { margin: 0; font-size: 28px; }
+  .version-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(96,165,250,0.14);
+    border: 1px solid rgba(96,165,250,0.28);
+    color: #dbeafe;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .subtitle { margin: 0 0 12px 0; color: var(--muted); line-height: 1.45; max-width: 1100px; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  input[type="text"] {
+    width: 360px; max-width: 100%;
+    background: #0e141b; color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; font-size: 14px;
+  }
+  .canvas-wrap {
+    position: relative;
+    background: radial-gradient(circle at 50% 45%, #111827 0%, #0b0d10 70%);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    min-height: 860px;
+  }
+  svg { display: block; width: 100%; height: 860px; background: transparent; }
+  .overlay {
+    position: absolute; left: 14px; bottom: 14px;
+    background: rgba(12,17,25,0.82);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 12px; color: var(--muted); font-size: 13px;
+    line-height: 1.35; max-width: 460px; backdrop-filter: blur(6px);
+  }
+  .link {
+    stroke: rgba(164,176,190,0.18);
+    stroke-width: 1.1px;
+    marker-end: url(#arrow);
+  }
+  .node circle {
+    stroke: rgba(255,255,255,0.26);
+    stroke-width: 1.1px;
+  }
+  .node text {
+    fill: #eef2f7;
+    font-size: 11px;
+    font-weight: 600;
+    paint-order: stroke;
+    stroke: rgba(11,13,16,0.96);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .dim { opacity: 0.08; }
+  .highlight-node circle { stroke: #ffffff; stroke-width: 2.4px; }
+  .highlight-link {
+    stroke: rgba(255,255,255,0.9) !important;
+    stroke-width: 2.0px !important;
+  }
+  .section { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .section:last-child { border-bottom: 0; }
+  .section h2 { margin: 0 0 10px 0; font-size: 18px; }
+  .kv {
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 8px; padding: 6px 0;
+    border-bottom: 1px dashed rgba(166,176,187,0.14);
+  }
+  .kv:last-child { border-bottom: 0; }
+  .k { color: var(--muted); }
+  .v { color: var(--text); font-weight: 700; }
+  .legend-item {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 10px;
+    align-items: start;
+    margin: 10px 0;
+  }
+  .swatch {
+    width: 14px; height: 14px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    margin-top: 3px;
+  }
+  .legend-title { color: var(--text); font-weight: 700; margin-bottom: 2px; }
+  .legend-desc { color: var(--muted); font-size: 12px; line-height: 1.35; }
+  .mono { font-family: Consolas, "Courier New", monospace; }
+  .term-title { margin: 0 0 8px 0; font-size: 17px; color: #ffffff; }
+  .small { font-size: 12px; color: var(--muted); }
+  .neighbors { margin-top: 8px; }
+  .neighbor { padding: 6px 0; border-bottom: 1px dashed rgba(166,176,187,0.14); }
+  .neighbor:last-child { border-bottom: 0; }
+  @media (max-width: 1200px) {
+    .wrap { grid-template-columns: 1fr; }
+    .sidebar { border-left: 0; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main class="main">
+    <div class="title-row">
+      <h1>Defined-terms semantic flow graph</h1>
+      <span class="version-pill">v0.8</span>
+    </div>
+    <p class="subtitle">
+      Sample document used:
+      <a href="sandbox:/mnt/data/2019%20Plan%20Document.pdf" style="color:#93c5fd">2019 Plan Document.pdf</a>.
+      Directed edge <span class="mono">term1 → term2</span> means <span class="mono">term1</span> is used
+      actively inside the definition text of <span class="mono">term2</span>.
+      Node size is proportional to <strong>in-flow degree</strong>.
+      Node color = semantic cluster from the definition texts.
+    </p>
+
+    <div class="controls">
+      <input id="searchBox" type="text" placeholder="Search a defined term">
+    </div>
+
+    <div class="canvas-wrap">
+      <svg id="graph"></svg>
+      <div class="overlay">
+        Larger nodes are more composite terms because more other defined terms flow into them.
+        Clusters are pulled apart more strongly than members within the same cluster.
+        Drag nodes to inspect local structure. Mouse wheel / trackpad to zoom.
+      </div>
+    </div>
+  </main>
+
+  <aside class="sidebar">
+    <section class="section">
+      <h2>Summary</h2>
+      <div class="kv"><div class="k">Document</div><div class="v">Saint Rose 2019</div></div>
+      <div class="kv"><div class="k">Defined-term nodes</div><div class="v">39</div></div>
+      <div class="kv"><div class="k">Directed edges</div><div class="v">147</div></div>
+      <div class="kv"><div class="k">Sizing</div><div class="v">in-flow degree</div></div>
+      <div class="kv"><div class="k">Clustering</div><div class="v">semantic, 6 groups</div></div>
+    </section>
+
+    <section class="section">
+      <h2>Semantic clusters</h2>
+      <div id="legend"></div>
+    </section>
+
+    <section class="section">
+      <h2>Selected / hovered term</h2>
+      <div id="info" class="small">Nothing selected yet.</div>
+    </section>
+  </aside>
+</div>
+
+<script>
+const nodes = [{"id": "Accrued Benefit", "section": "1.1", "cluster": 2, "definition": "(a) Subject to the maximum benefit limitation under Section 4.5, the Normal Form of Retirement Income payable at Normal Retirement Date in an amount equal to the benefit under Subsection 4.1 (a), on the basis of the Participant's Average Compensation and Credited Service to the date he last ceased to be an Active Participant. (b) Notwithstanding the above, the Accrued Benefit of any Participant with at least one Hour of Employment in a Plan Year beginning after January 1, 1994 shall be equal to the greater of (i) or (ii) (i) the Participant's \"Frozen Accrued Benefit\", which shall mean his Accrued Benefit, determined under the Plan provisions in effect as of the close of the last Plan Year beginning prior to January 1, 1994, calculated as if the Participant terminated employment with the Employer on December 31, 1993. (c) (d) (ii) the Participant's Accrued Benefit determined under the current benefit formula and total Credited Service before and after January 1, 1994. (iii) The provisions of this Paragraph shall only be applicable to 401 (a)(17) employees. A 401 (a)(17) employee means an Employee whose current Accrued Benefit as of a date on or after the first day of the first Plan Year beginning on or after January 1, 1994, is based on Compensation for a year beginning prior to the first day of the first Plan Year beginning on or after January 1, 1994, that exceeded $150,000. (iv) If the Participant has not had a fresh-start, the Participant's Frozen Accrued Benefit will be zero. If, as of the Participant's latest fresh-start date, the amount of a Participant's Frozen Accrued Benefit was limited by the application of Code Section 415, the Participant's Frozen Accrued Benefit will be increased for years after the latest fresh-start date to the extent permitted under Code Section 415(d)(1). In addition, the Frozen Accrued Benefit of a Participant whose Frozen Accrued Benefit includes the Top-Heavy minimum benefits provided in Article 12, will be increased to the extent necessary to comply with the average compensation requirement of Code Section 416(c)(1 )(D)(i). With respect to Plan Years beginning after the latest fresh-start date, the current benefit formula will provide each Participant in the fresh-start group a benefit of not less than .5% of the Participant's Average Compensation times the Participant's Years of Service after the latest fresh-start date. The minimum benefit below take into account on an Employee's past Service in determining the Participant's Accrued Benefit under the Plan and may cause the Plan to fail to satisfy the safe harbor for past service in Section 1.401 (a)(4)- 5(a)(3) of the Income Tax Regulations. The Frozen Accrued Benefit in an excess benefit Plan of each Participant in the fresh-start group will be increased, to the extent necessary, if any, so that the base benefit percentage, determined with reference to all of the Participant's Years of Service as of the latest fresh-start date, is not less than 50% of the excess benefit percentage as of the latest fresh-start date, determined with reference to all of the Participant's Years of Service as of the latest fresh-start date. In no event shall a Participant's Accrued Benefit be (i) less than the Accrued Benefit as of any preceding day, (ii) decreased due to subsequent increases in social security benefits or (iii) ceased, nor the rate of accrual decreased, because of the attainment of any age. Notwithstanding the above, the Actuarial Equivalent of the Accrued Benefit payable in any form or at any time shall not be less than the benefit, in such form and at such time, which would have been payable in accordance with the terms and rates specified in the Plan before the adoption of any amendment affecting Accrued Benefits based on the Participant's Accrued Benefit at such date of adoption, unless provided by law. Notwithstanding any provisions of the Plan to the contrary, for Plan Years beginning before Code Section 411 is applicable hereto, the Participant's Accrued Benefit shall be the greater of the benefit provided by the Plan in effect prior to September 2, 197 4 or 1 / of the benefit which would have accrued had the provisions of this Section been in effect. In the event the Accrued Benefit as of the effective date of Code Section 411 is less than that provided by this Section such difference shall be accrued in accordance with this Section.", "inDegree": 13, "outDegree": 3}, {"id": "Actuarial Equivalent", "section": "1.2", "cluster": 2, "definition": "Subject to the maximum benefit limitation under Section 4.5, a form of benefit differing in time, period or manner of payment, that replaces another and has the same value, based on actuarial assumptions, as the benefit or amount it replaces. Before the date of adoption of this restated Plan by the Board of Trustees, Actuarial Equivalencies shall be determined on the basis of the provisions of the Plan then in effect. On or after such date, Actuarial Equivalencies shall be determined as follows: (a) For purposes of determining the lump sum value of any benefit payable, the Applicable Interest Rate and the Applicable Mortality Rate shall be used. For Participants eligible for Normal or Deferred Retirement or whose benefit commences in accordance with Subsection 8.3(g) prior to eligibility for Retirement, such lump sum shall be valued as an immediate benefit. In the event of termination of employment before Normal or Deferred Retirement, the lump sum payable to a Vested Participant shall be determined as the value of a deferred benefit commencing at his Normal Retirement Date. (b) For purposes of determining the amount of any optional form of retirement income payable other than a lump sum distribution, an interest rate of 8%, compounded annually and 2-year age setback mortality rates in accordance with UP84 shall be used. (c) If any benefit is payable before a Participant's Normal Retirement Date (d) (i) for a reason other than Disability, the Participant's Accrued Benefit will be reduced by 5/9 of 1 % for each of the first 60 months and 5/18 of 1 % for each of the next 60 months by which the commencement of benefits precedes the Participant's Normal Retirement Date. (ii) as a result of Disability Retirement, the Participant's Accrued Benefit will be actuarially reduced using the interest and mortality rates in Subsection (b), with respect to the period the commencement occurs prior to a Participant's Normal Retirement Date. If any benefit determined as of or after a Participant's Normal Retirement Date is payable at a later date, it shall be actuarially increased using the interest and mortality rates in Subsection (b), with respect to the period commencement is deferred. (e) If the commencement of any survivorship benefit commences before or after the Earliest Commencement Date, the lifetime income payable upon commencement will be adjusted to reflect the early or deferred commencement date. (f) Applicable Interest Rate and Applicable Mortality Rate shall be determined as follows: (i) \"Applicable Interest Rate\" shall mean, the adjusted first, second and third segment rates described in Code Section 417(e)(3). For this purpose, the segment rates are the spot segment rates that would be determined for the applicable month under Code Section 430(h)(2)(C) without the 24-month averaging under Code Section 430(h)(2)(D), and determined without regard to the adjustment for the 25- year average segment rates provided in Code Section 430(h)(2)(C)(iv). For distributions with Annuity Starting Dates occurring during Plan Years beginning on or after January 1, 2008 and before January 1, 2012, these rates are adjusted by blending with the rate of interest for 30-year Treasury securities under the transition percentages specified in Code Section 417(e)(3)(D)(iii). The rates described above shall be the rate or rates for the third month immediately preceding the Anniversary Date preceding or coincident with the date selected for payment of the benefit. (ii) \"Applicable Mortality Rate\" shall mean the table prescribed in accordance with Code Section 417(e)(3).", "inDegree": 14, "outDegree": 1}, {"id": "Anniversary Date", "section": "1.3", "cluster": 2, "definition": "The first day of each July 1.", "inDegree": 0, "outDegree": 2}, {"id": "Annuity", "section": "1.4", "cluster": 3, "definition": "A nontransferable single premium annuity contract or an annuity under a group annuity contract purchased by the Trustee or Funding Agent on behalf of a Participant or Beneficiary from an insurance company for purposes of providing the benefits payable under the terms of the Plan.", "inDegree": 5, "outDegree": 7}, {"id": "Annuity Starting Date", "section": "1.5", "cluster": 2, "definition": "The first day of the first period for which an amount is payable as an annuity. If a benefit is not payable in the form of an annuity, the first day on which all events have occurred which entitle the Participant to such benefit.", "inDegree": 2, "outDegree": 3}, {"id": "Applicable Computation Period", "section": "1.6", "cluster": 1, "definition": "(a) For purposes of Hours of Employment for eligibility in accordance with Section 2.1, an Eligible Employee's first Applicable Computation Period shall be the 12-consecutive month period beginning as of the date a person first completed an Hour of Employment with an Employer. Thereafter, such Eligible Employee's Applicable Computation Period shall be each Plan Year, commencing with the Plan Year which begins after the date he first completed an Hour of Employment. (b) For purposes of determining Service for vesting and benefits, Applicable Computation Period shall be the 12-consecutive month period beginning as of the first day of the month during which a person first completed an Hour of Employment with the Employer and each anniversary thereof.", "inDegree": 5, "outDegree": 1}, {"id": "Average Compensation", "section": "1.7", "cluster": 1, "definition": "The Compensation of a Participant during the last 60 consecutive calendar months of Service, (or the total number of calendar months if less than 60) divided by five. If a Participant has less than 60 months of service from his date of employment to his Severance From Employment Date, his Average Annual Compensation will be based on his actual number of months for which compensation is received.", "inDegree": 4, "outDegree": 1}, {"id": "Beneficiary", "section": "1.8", "cluster": 2, "definition": "The person designated to receive benefits payable under the Plan in the event of death. In the event a Beneficiary is not designated, the Participant's surviving spouse shall be deemed his Beneficiary or in the absence of a surviving spouse, the benefits shall be paid to the Participant's estate. Such person is the designated beneficiary under Code Section 401 (a)(9) and Treasury Regulation Section 1.401 (a)(9)-4.", "inDegree": 3, "outDegree": 2}, {"id": "Board of Trustees", "section": "1.9", "cluster": 4, "definition": "The Board of Trustees of The College of Saint Rose.", "inDegree": 1, "outDegree": 2}, {"id": "Code", "section": "1.10", "cluster": 0, "definition": "The Internal Revenue Code of 1986, as it may from time to time be amended or supplemented.", "inDegree": 0, "outDegree": 9}, {"id": "Committee", "section": "1.11", "cluster": 1, "definition": "The person or persons appointed in accordance with Section 9.1 to administer the Plan. In the absence of such designation, the Company shall serve as the Committee and in such case, all references herein to the Committee shall be deemed a reference to the Company.", "inDegree": 2, "outDegree": 1}, {"id": "Company", "section": "1.12", "cluster": 4, "definition": "(a) The College of Saint Rose and any successor which shall maintain this Plan; and (b) any other business entity which duly adopts the Plan with the approval of the Board of Trustees.", "inDegree": 3, "outDegree": 9}, {"id": "Compensation", "section": "1.13", "cluster": 1, "definition": "(a) The amount described in Subsection (b), exclusive of any (i) amount which is paid by the Employer but not by the Company (ii) amount paid by the Company for any period during which the Participant's employment status did not meet the requirements of Section 1.20; (iii) welfare benefits, fringe benefits (cash and non cash), reimbursements of other expense allowances and moving expenses; and (iv) amount paid prior to becoming a Participant. (b) For purposes of Sections 1.24, 4.5, 14. 7(c) and Article 12, the Participant's wages for the Plan Year paid by the Employer of the type reported in box 1 of Form W-2. Such wages shall include amounts within the meaning of Section 3401 (a) of the Code plus any other amounts paid to the Participant by the Employer for which the Employer is required to furnish a written statement under Sections 6041 (d), 6051 (a)(3) and 6052 of the Code, determined without regard to any rules that limit the amount required to be reported based on the nature or location of the employment or services performed, (c) (i) exclusive of any amounts paid or reimbursed by the Employer for moving expenses which the Employer reasonably believes at the time of such payment to be deductible by the Employee under Section 217 of the Code;and (ii) increased by the amount of any contributions made by the Employer under any salary reduction or similar arrangement to (A) a qualified cash or deferred arrangement under Code Section 401 (k); (B) a simplified employee pension plan described in Section 408(k) of the Code (SAR-SEP); (C) a SIMPLE arrangement under Code Section 408(p); (D) an Annuity contract described in Section 403(b) of the Code; (E) a deferred compensation plan within the meaning of Section 457(b) of the Code; (F) a cafeteria plan under Code Section 125; and (G) a plan providing for qualified transportation fringe benefits under Code Section 132(f)(4). For purposes of Subparagraph (F) above, Code Section 125 shall include any amounts not available to a Participant in cash in lieu of group health coverage because the Participant is unable to certify that he or she has other health coverage. An amount will be treated as an amount under Code Section 125 only if the Employer does not request or collect information regarding the Participant's other health coverage as part of the enrollment process for the health Plan. For Plan Years beginning on or after July 1, 2007, Compensation described in Section (b) above shall also include Compensation paid by the later of 2-1/ months after an Employee's severance from employment with the Employer or the end of the Plan Year that includes the date of the Employee's severance from employment with the Employer, provided the payment (i) is for regular Compensation for services during the Employee's regular working hours, other hours (such as overtime or shift differential), commissions, bonuses or other similar payments and absent a Severance of Employment the payments would have been paid to the Employee while employed; (ii) is for unused accrued bona fide sick, vacation or other leave that the Employee would have been able to use if employment had continued; or (iii) is received by the Employee pursuant to a nonqualified unfunded deferred Compensation plan and would have been paid at the same time if employment had continued, but only to the extent includible in gross income. (d) Compensation described in Section (b) above shall not include amounts earned but not paid during the Plan Year solely because of the timing of pay periods and pay dates, provided the amounts are paid during the first few weeks of the next Plan Year, the amounts are included on a uniform and consistent basis with respect to all similarly situated Participants, and no compensation is included in more than one Plan Year. (e) In addition to other applicable limitations set forth in the Plan, and notwithstanding any other provision of the Plan to the contrary, the annual Compensation of each Employee taken into account under the Plan shall not exceed $200,000 as adjusted for increases in the cost-of-living in accordance with Code Section 401 (a)(17)(B). The cost-of-living adjustment in effect for a calendar year applies to any Plan Year not exceeding 12 months, over which Compensation is determined beginning in such calendar year. In the event of a short Plan Year, such dollar limitation shall be divided by 12 and multiplied by the number of months in the short Plan Year.", "inDegree": 9, "outDegree": 4}, {"id": "Controlled or Affiliated Service Group", "section": "1.14", "cluster": 5, "definition": "(a) \"Controlled Group\" - Any group of business entities under common control, including but not limited to proprietorships and partnerships, or a controlled group of corporations within the meaning of Sections 414(b), (c) and (o) of the Code. For purposes of Section 4.5, the phrase \"more than 50%\" is substituted for the phrase \"at least 80%\" each place it appears in Section 1563(a)(1) of the Code. (b) \"Affiliated Service Group\" -Any group of business entities within the meaning of Section 414(m) of the Code.", "inDegree": 2, "outDegree": 1}, {"id": "Defined Benefit Plan", "section": "1.15", "cluster": 2, "definition": "An employee benefit plan defined in Section 3(35) of ERISA, which meets the requirements for tax qualification under the Code.", "inDegree": 4, "outDegree": 0}, {"id": "Disability", "section": "1.16", "cluster": 2, "definition": "Any physical or mental condition which may reasonably be expected to be both continuous and permanent and which renders a Participant incapable of continuing as an Eligible Employee for his customary Hours of Employment and for which the Participant shall be eligible to receive benefits under the disability insurance provisions of the Social Security Act, provided that such condition (a) prevents him from performing any substantial gainful activity; (b) occurs on or after the Effective Date but prior to the Participant's Normal Retirement Date; and (c) is not the result of injury or disease sustained by the Participant subsequent to the date his employment terminated.", "inDegree": 4, "outDegree": 3}, {"id": "Earliest Commencement Date", "section": "1.17", "cluster": 2, "definition": "The first day of the month coincident with or next following the day before the Participant's death if the Participant was eligible for Early Retirement and, if the Participant was not eligible for Early Retirement, the first date the Participant would have been eligible to commence his retirement income had he survived but did not continue in or return to Service with the Employer.", "inDegree": 4, "outDegree": 1}, {"id": "Effective Date / Supplemental Effective Date", "section": "1.18", "cluster": 1, "definition": "July 1, 1973, the date as of which the Plan was established. \"Supplemental Effective Date\" July 1, 2019, the last date as of which the Plan was amended in its entirety.", "inDegree": 1, "outDegree": 3}, {"id": "Election Period", "section": "1.19", "cluster": 1, "definition": "The period commencing no less than 30 days and no more than 180 days before the Annuity Starting Date and ending on such date.", "inDegree": 2, "outDegree": 0}, {"id": "Employee / Eligible Employee / Leased Employee", "section": "1.20", "cluster": 1, "definition": "Any person in the employ of the Employer. Leased Employees shall be included as Employees unless (a) such individual is covered by a money purchase pension plan providing (i) a nonintegrated employer contribution rate of at least 10% of compensation, as defined in Section 415(c)(3) of the Code, but including amounts contributed by the Employer pursuant to a salary reduction agreement which are excludable from the Leased Employee's gross income under Section 125, 402(e)(3), 403(h)(1)(B) or 403(b) of the Code; (ii) immediate participation; and (iii) full and immediate vesting; and (b) Leased Employees do not constitute more than 20% of the Employer's Nonhighly Compensated Employee workforce. \"Leased Employee\" Any person (other than an Employee of the recipient) who pursuant to an agreement between the recipient and any other person (\"leasing organization\") has performed services for the recipient (or for the recipient and related persons determined in accordance with Section 414(n)(6) of the Code) on a substantially full time basis for a period of at least one year, and such services are performed under the primary direction or control of the recipient employer. Contributions or benefits provided a Leased Employee by the leasing organization which are attributable to services performed for the recipient employer shall be treated as provided by the recipient employer. Notwithstanding the foregoing, Employee shall not include any person considered to be an independent contractor in accordance with Treasury Regulation Sections 31.3121(d)- 1 and 31.3306(i)-1, notwithstanding the fact that such person is later determined to be a common-law employee of the Employer. \"Eligible Employee\" An Employee of the Company for whom the Company is required to contribute Federal Insurance Contributions Act taxes excluding persons who are (a) Leased Employees, (b) faculty, (c) Administrative (Salaried) Staff, (d) self-employed individuals, (e) temporary employees and (f) students. Any person who is not treated as a common law employee of the Employer on its payroll records is not an Eligible Employee and is excluded from Plan participation even if a court or governmental agency determines that such person is a common law employee.", "inDegree": 7, "outDegree": 10}, {"id": "Employer", "section": "1.21", "cluster": 5, "definition": "The Company and any other business entity in a Controlled or Affiliated Service Group which includes the Company.", "inDegree": 3, "outDegree": 9}, {"id": "ERISA", "section": "1.22", "cluster": 0, "definition": "The Employee Retirement Income Security Act of 1974, as it may from time to time be amended or supplemented.", "inDegree": 2, "outDegree": 2}, {"id": "Highly Compensated Employee / Nonhighly Compensated Employee", "section": "1.23", "cluster": 1, "definition": "(a) (b) (c) (d) An Employee who is a Highly Compensated Active Employee or a Highly Compensated Former Employee. A Highly Compensated Active Employee is any Employee who performs Service with the Employer during the Determination Year who (i) was at any time during the Determination Year or Look-Back Year a 5% owner, as defined in Section 416(i)(1) of the Code and (ii) received Compensation from the Employer during the Look-Back Year in excess of $80,000 adjusted annually for increases in the cost-of-living in accordance with Section 415( d) of the Code, effective as of January 1 of the calendar year such increase is promulgated and applicable to the Plan Year which begins with or within such calendar year. A Highly Compensated Former Employee for a Determination Year is any former Employee who separated from Service prior to such Determination Year and was a Highly Compensated Active Employee for either the year in which such Employee separated from Service or any Determination Year ending on or after such Employee's 55th birthday. A Participant is a Highly Compensated Employee for a particular Determination Year if he or she meets the definition of a Highly Compensated Employee in effect for that Determination Year. (e) The Determination Year is the applicable Plan Year for which a determination is being made and the Look-Back Year is the preceding 12-month period. \"Nonhighly Compensated Employee\" An Employee who is not deemed to be a Highly Compensated Employee. A Participant is a Nonhighly Compensated Employee for a particular Determination Year if he or she does not meet the definition of a Highly Compensated Employee in effect for that Determination Year.", "inDegree": 8, "outDegree": 1}, {"id": "Normal Form of Retirement Income", "section": "1.24", "cluster": 2, "definition": "A pension payable for life beginning as of the Participant's Retirement Date or, if later, the income commencement date, but in the event of the Participant's death before receiving 36 monthly payments, his pension continues to his Beneficiary until the balance of the 36 monthly payments has been paid.", "inDegree": 3, "outDegree": 0}, {"id": "PBGC", "section": "1.25", "cluster": 2, "definition": "The Pension Benefit Guaranty Corporation, as established under Section 4002 of ERISA.", "inDegree": 1, "outDegree": 0}, {"id": "Participant", "section": "1.26", "cluster": 2, "definition": "All classifications as hereinafter defined: (a) (b) (c) (d) (e) (f) (g) \"Active Participant\" - An Eligible Employee who is participating in the Plan in accordance with Section 2.1. \"Inactive Participant\" - A person who is no longer an Active Participant of the Plan (i) in accordance with Section 2.2 or (ii) because his basis of employment no longer meets the requirements set forth in Section 1.20 while he continues in the employ of the Employer. \"Retired Participant\" - A former Eligible Employee whose employment terminated, but who is eligible for or receiving a benefit in accordance with Section 5.1. \"Vested Participant\" - A current or former Eligible Employee other than a Retired Participant who has qualified for a vested interest in his Accrued Benefit in accordance with Article 5, but whose benefit has not been fully distributed. \"Facilities Union Participant\" -A Participant who is a member of the Facilities Union. \"Non Union Hourly Participant\" - A Participant who is not a Facilities Union Participant and who is not a Security Participant. \"Security Union Participant\" - A Participant who is a member of the Security Union.", "inDegree": 4, "outDegree": 17}, {"id": "Plan", "section": "1.27", "cluster": 0, "definition": "The pension plan of the Company, as herein set forth and as from time to time supplemented and amended.", "inDegree": 1, "outDegree": 17}, {"id": "Plan Year", "section": "1.28", "cluster": 1, "definition": "A period of 12 consecutive months commencing on the Effective Date and each Anniversary Date thereafter.", "inDegree": 2, "outDegree": 5}, {"id": "Protected Spouse", "section": "1.29", "cluster": 2, "definition": "The spouse to whom the Participant had been legally married on the earlier of the date of the Participant's death or the Participant's Annuity Starting Date. For purposes of Section 7.2 Protected Spouse means the person to whom the Participant has been married for at least 12 months preceding the Participant's death. Neither the Committee nor the Trustee is required at any time to inquire into the validity of any marriage, the effectiveness of a common-law relationship or the claim of any alleged spouse which is inconsistent with the Participant's report of his marital status and the identity of his spouse.", "inDegree": 5, "outDegree": 0}, {"id": "Qualified Domestic Relations Order", "section": "1.30", "cluster": 2, "definition": "A domestic relations order as defined in Section 9.8 in accordance with Section 414(p) of the Code.", "inDegree": 1, "outDegree": 0}, {"id": "Retirement", "section": "1.31", "cluster": 2, "definition": "The termination of employment of a Participant on his Normal, Early, Deferred or Disability Retirement Date.", "inDegree": 3, "outDegree": 7}, {"id": "Retirement Dates", "section": "1.32", "cluster": 2, "definition": "(a) \"Normal Retirement Date\" -The date on which a Participant attains age 65. (b) (c) (d) The Participant's retirement income shall be computed and payable as of the first day of the month coincident with or next following his Normal Retirement Date. \"Early Retirement Date\" -The first day of any month coincident with or following the date on which a Participant attains age 55, provided he has completed Years of Service as of such date. \"Deferred Retirement Date\" -The first day of any month subsequent to the Participant's Normal Retirement Date. \"Disability Retirement Date\" -The first day of the month coincident with or next following the date on which an Active or Inactive Participant is deemed to have incurred a Disability, provided he completed at least 10 Years of Service as of such date.", "inDegree": 4, "outDegree": 3}, {"id": "Service", "section": "1.33", "cluster": 1, "definition": "(a) All periods of employment with the Company, except as provided in Subsection (c), and except for purposes of determining benefits in accordance with Section 1.1, Article 4 and Article 12, all additional periods of employment with the Employer. A period of employment begins as of the date the Employee first completes an Hour of Employment for the Employer and ends on the earlier of the date the Employee resigns, is discharged, retires or dies or, if the Employee is absent for any other reason, on the first anniversary of the first day of such absence (with or without pay) from the Employer. If an Employee is absent for any reason and returns to the employ of the Employer before incurring a Break-in-Service, as provided in Subsection (b), he shall receive credit for his period of absence up to a maximum of 12 months. Service subsequent to a Break-in-Service will be credited as a separate period of employment. (b) \"Break-in-Service\" -A period of 12 consecutive months during which an Employee fails to accrue 500 Hours of Employment with the Employer. Such period begins on the earlier of the date the Employee resigns, is discharged, retires or dies or, if the Employee is absent for any other reason, on the first anniversary of the first day of such absence (with or without pay) from the Employer. If an Employee is absent by reason of (i) the pregnancy of the Employee, (ii) the birth of a child of the Employee, (iii) the placement of a child with the Employee in connection with an adoption of such child by such Employee, (iv) caring for such child immediately following such birth or placement or (v) any other family medical leave, such Employee will not be treated as having retired, resigned or been discharged and the period between the first and second anniversary of the first day of such absence shall not be considered a Break-in-Service. (c) If an Employee, who did not have a vested interest in his Accrued Benefit, incurs five or more consecutive Breaks-in-Service and is then reemployed by the Employer, he shall be deemed a new Employee and shall not receive credit for his Service before the date he incurred such Breaks-in-Service unless his Service was equal to or greater than the period of his absence. (d) \"Month of Service\" -A calendar month any part of which is in a period of employment or credited absence. (e) \"Year of Service\" - 12 consecutive Months of Service. (f) \"Hour of Employment\" (i) (ii) For an Employee paid on an hourly basis or for whom hourly records of employment are required to be maintained, each hour for which the person is directly or indirectly paid or entitled to payment for the performance of duties or for the period of time when no duties are performed, irrespective of whether the employment relationship has terminated, such as vacation, holiday or illness. For an Employee paid on a non-hourly basis or for whom hourly records of employment are not required to be maintained, each week for which the person is directly or indirectly paid or entitled to payment shall be equal to 45 Hours of Employment. (iii) A person shall receive an Hour of Employment for each hour for which back pay has been awarded or agreed to irrespective of mitigation of damages, provided that each such hour shall be credited to the Applicable Computation Period to which it pertains, rather than the Applicable Computation Period in which the award or agreement is made, and further provided that no such award or agreement shall have the effect of crediting an Hour of Employment for any hour for which the person previously received credit under (i) or (ii) above. (iv) Notwithstanding the foregoing, Hours of Employment shall be computed and credited in accordance with Department of Labor Regulation 2530.200(b)-2, Subparagraphs (b) and (c). (g) Notwithstanding the foregoing, an Inactive Participant, as defined in Subsection 1.26(b)(i) or (iii), shall not be credited with any periods of employment while an Inactive Participant for purposes of determining benefits in accordance with Section 1.1, Article 4 and Article 12. (h) Notwithstanding the foregoing, Service for purposes of determining benefits in accordance with Section 1.1, Article 4 and Article 12 for a Participant as the result of a period of absence due to an approved leave of absence for service in the Armed Forces of the United States of America (to the extent required by law in accordance with Section 14.7) shall include imputed Service. Determination of the amount of imputed Service will be based on Service reasonably representative of what such Participant would have received during the period during which Service is imputed if the Participant had continued to perform services during that period. (i) \"Credited Service\" - The Participant's Service measured in full and fractional years. Notwithstanding the foregoing, an Inactive Participant, as defined in Subsection 1.26(b)(i) or (iii), shall not be credited with any periods of employment while an Inactive Participant or prior to becoming an Eligible Employee.", "inDegree": 6, "outDegree": 11}, {"id": "Severance From Employment Date", "section": "1.34", "cluster": 1, "definition": "The date when an Employee ceases to be an Employee of the Employer maintaining the Plan. An Employee does not have a Severance from Employment if, in connection with a change of employment, the Employee's new employer maintains the Plan with respect to the Employee.", "inDegree": 3, "outDegree": 1}, {"id": "Social Security Retirement Age", "section": "1.35", "cluster": 2, "definition": "Age 65 in the case of a Participant attaining age 62 before January 1, 2000, age 66 for a Participant attaining age 62 after December 31, 1999 and before January 1, 2017 and age 67 for a Participant attaining age 62 after December 31, 2016.", "inDegree": 1, "outDegree": 0}, {"id": "Straight Life Annuity", "section": "1.36", "cluster": 2, "definition": "An annuity payable in equal installments for lhe life of the Participant that terminates upon the Participant's death.", "inDegree": 2, "outDegree": 0}, {"id": "Trust Agreement / Insurance Contract", "section": "1.37", "cluster": 3, "definition": "In the event that the Plan is funded by a (a) Trust Fund with a Trustee, the instrument executed by the Company and the Trustee fixing the rights and liabilities of each with respect to holding and administering the Trust Fund for the purposes of the Plan; or (b) Pension Fund with a Funding Agent, the group annuity contract executed by the Company or Funding Agent fixing the rights and liabilities of each with respect to holding and administering the Pension Fund for the purposes of the Plan.", "inDegree": 5, "outDegree": 2}, {"id": "Trustee / Funding Agent", "section": "1.38", "cluster": 3, "definition": "In the event that the Plan is funded by a (a) Trust Fund, the Trustee or any successor Trustee, appointed by the Board of Trustees, acting in accordance with the terms of the Trust Agreement. (b) Pension Fund, the legal reserve life insurance company selected by the Company to hold and invest the Company's contributions in accordance with the terms of the Insurance Contract and to administer the Pension Fund for the purposes of the Plan.", "inDegree": 4, "outDegree": 7}, {"id": "Trust Fund / Pension Fund", "section": "1.39", "cluster": 3, "definition": "In the event that the Plan utilizes the services of a (a) (b) Trustee in accordance with the terms of a Trust Agreement, all assets held by the Trustee in accordance with the terms of such Trust Agreement. Such Trust Fund shall be created in the United States of America and will be maintained at all times as a domestic trust in the United States of America. Funding Agent in accordance with the terms of an Insurance Contract, all assets held by the Funding Agent in accordance with the terms of the such Insurance Contract.", "inDegree": 4, "outDegree": 2}];
+const links = [{"source": "Actuarial Equivalent", "target": "Accrued Benefit"}, {"source": "Average Compensation", "target": "Accrued Benefit"}, {"source": "Code", "target": "Accrued Benefit"}, {"source": "Compensation", "target": "Accrued Benefit"}, {"source": "Effective Date / Supplemental Effective Date", "target": "Accrued Benefit"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Accrued Benefit"}, {"source": "Employer", "target": "Accrued Benefit"}, {"source": "Participant", "target": "Accrued Benefit"}, {"source": "Plan", "target": "Accrued Benefit"}, {"source": "Plan Year", "target": "Accrued Benefit"}, {"source": "Retirement", "target": "Accrued Benefit"}, {"source": "Retirement Dates", "target": "Accrued Benefit"}, {"source": "Service", "target": "Accrued Benefit"}, {"source": "Accrued Benefit", "target": "Actuarial Equivalent"}, {"source": "Anniversary Date", "target": "Actuarial Equivalent"}, {"source": "Annuity", "target": "Actuarial Equivalent"}, {"source": "Annuity Starting Date", "target": "Actuarial Equivalent"}, {"source": "Board of Trustees", "target": "Actuarial Equivalent"}, {"source": "Code", "target": "Actuarial Equivalent"}, {"source": "Disability", "target": "Actuarial Equivalent"}, {"source": "Earliest Commencement Date", "target": "Actuarial Equivalent"}, {"source": "Participant", "target": "Actuarial Equivalent"}, {"source": "Plan", "target": "Actuarial Equivalent"}, {"source": "Plan Year", "target": "Actuarial Equivalent"}, {"source": "Retirement", "target": "Actuarial Equivalent"}, {"source": "Retirement Dates", "target": "Actuarial Equivalent"}, {"source": "Trustee / Funding Agent", "target": "Actuarial Equivalent"}, {"source": "Beneficiary", "target": "Annuity"}, {"source": "Company", "target": "Annuity"}, {"source": "Participant", "target": "Annuity"}, {"source": "Plan", "target": "Annuity"}, {"source": "Trustee / Funding Agent", "target": "Annuity"}, {"source": "Annuity", "target": "Annuity Starting Date"}, {"source": "Participant", "target": "Annuity Starting Date"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Applicable Computation Period"}, {"source": "Employer", "target": "Applicable Computation Period"}, {"source": "Plan", "target": "Applicable Computation Period"}, {"source": "Plan Year", "target": "Applicable Computation Period"}, {"source": "Service", "target": "Applicable Computation Period"}, {"source": "Compensation", "target": "Average Compensation"}, {"source": "Participant", "target": "Average Compensation"}, {"source": "Service", "target": "Average Compensation"}, {"source": "Severance From Employment Date", "target": "Average Compensation"}, {"source": "Code", "target": "Beneficiary"}, {"source": "Participant", "target": "Beneficiary"}, {"source": "Plan", "target": "Beneficiary"}, {"source": "Trustee / Funding Agent", "target": "Board of Trustees"}, {"source": "Company", "target": "Committee"}, {"source": "Plan", "target": "Committee"}, {"source": "Board of Trustees", "target": "Company"}, {"source": "Plan", "target": "Company"}, {"source": "Trustee / Funding Agent", "target": "Company"}, {"source": "Annuity", "target": "Compensation"}, {"source": "Code", "target": "Compensation"}, {"source": "Company", "target": "Compensation"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Compensation"}, {"source": "Employer", "target": "Compensation"}, {"source": "Participant", "target": "Compensation"}, {"source": "Plan", "target": "Compensation"}, {"source": "Plan Year", "target": "Compensation"}, {"source": "Service", "target": "Compensation"}, {"source": "Code", "target": "Controlled or Affiliated Service Group"}, {"source": "Service", "target": "Controlled or Affiliated Service Group"}, {"source": "Code", "target": "Defined Benefit Plan"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Defined Benefit Plan"}, {"source": "ERISA", "target": "Defined Benefit Plan"}, {"source": "Plan", "target": "Defined Benefit Plan"}, {"source": "Effective Date / Supplemental Effective Date", "target": "Disability"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Disability"}, {"source": "Participant", "target": "Disability"}, {"source": "Retirement", "target": "Disability"}, {"source": "Employer", "target": "Earliest Commencement Date"}, {"source": "Participant", "target": "Earliest Commencement Date"}, {"source": "Retirement", "target": "Earliest Commencement Date"}, {"source": "Service", "target": "Earliest Commencement Date"}, {"source": "Plan", "target": "Effective Date / Supplemental Effective Date"}, {"source": "Annuity", "target": "Election Period"}, {"source": "Annuity Starting Date", "target": "Election Period"}, {"source": "Code", "target": "Employee / Eligible Employee / Leased Employee"}, {"source": "Company", "target": "Employee / Eligible Employee / Leased Employee"}, {"source": "Compensation", "target": "Employee / Eligible Employee / Leased Employee"}, {"source": "Employer", "target": "Employee / Eligible Employee / Leased Employee"}, {"source": "Highly Compensated Employee / Nonhighly Compensated Employee", "target": "Employee / Eligible Employee / Leased Employee"}, {"source": "Plan", "target": "Employee / Eligible Employee / Leased Employee"}, {"source": "Service", "target": "Employee / Eligible Employee / Leased Employee"}, {"source": "Company", "target": "Employer"}, {"source": "Controlled or Affiliated Service Group", "target": "Employer"}, {"source": "Service", "target": "Employer"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "ERISA"}, {"source": "Retirement", "target": "ERISA"}, {"source": "Code", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Compensation", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Employer", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Participant", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Plan", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Plan Year", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Service", "target": "Highly Compensated Employee / Nonhighly Compensated Employee"}, {"source": "Beneficiary", "target": "Normal Form of Retirement Income"}, {"source": "Participant", "target": "Normal Form of Retirement Income"}, {"source": "Retirement", "target": "Normal Form of Retirement Income"}, {"source": "ERISA", "target": "PBGC"}, {"source": "Accrued Benefit", "target": "Participant"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Participant"}, {"source": "Employer", "target": "Participant"}, {"source": "Plan", "target": "Participant"}, {"source": "Company", "target": "Plan"}, {"source": "Anniversary Date", "target": "Plan Year"}, {"source": "Effective Date / Supplemental Effective Date", "target": "Plan Year"}, {"source": "Annuity", "target": "Protected Spouse"}, {"source": "Annuity Starting Date", "target": "Protected Spouse"}, {"source": "Committee", "target": "Protected Spouse"}, {"source": "Participant", "target": "Protected Spouse"}, {"source": "Trustee / Funding Agent", "target": "Protected Spouse"}, {"source": "Code", "target": "Qualified Domestic Relations Order"}, {"source": "Disability", "target": "Retirement"}, {"source": "Participant", "target": "Retirement"}, {"source": "Retirement Dates", "target": "Retirement"}, {"source": "Disability", "target": "Retirement Dates"}, {"source": "Participant", "target": "Retirement Dates"}, {"source": "Retirement", "target": "Retirement Dates"}, {"source": "Service", "target": "Retirement Dates"}, {"source": "Accrued Benefit", "target": "Service"}, {"source": "Applicable Computation Period", "target": "Service"}, {"source": "Company", "target": "Service"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Service"}, {"source": "Employer", "target": "Service"}, {"source": "Participant", "target": "Service"}, {"source": "Employee / Eligible Employee / Leased Employee", "target": "Severance From Employment Date"}, {"source": "Employer", "target": "Severance From Employment Date"}, {"source": "Plan", "target": "Severance From Employment Date"}, {"source": "Participant", "target": "Social Security Retirement Age"}, {"source": "Annuity", "target": "Straight Life Annuity"}, {"source": "Participant", "target": "Straight Life Annuity"}, {"source": "Annuity", "target": "Trust Agreement / Insurance Contract"}, {"source": "Company", "target": "Trust Agreement / Insurance Contract"}, {"source": "Plan", "target": "Trust Agreement / Insurance Contract"}, {"source": "Trustee / Funding Agent", "target": "Trust Agreement / Insurance Contract"}, {"source": "Trust Fund / Pension Fund", "target": "Trust Agreement / Insurance Contract"}, {"source": "Company", "target": "Trustee / Funding Agent"}, {"source": "Plan", "target": "Trustee / Funding Agent"}, {"source": "Trust Agreement / Insurance Contract", "target": "Trustee / Funding Agent"}, {"source": "Trust Fund / Pension Fund", "target": "Trustee / Funding Agent"}, {"source": "Plan", "target": "Trust Fund / Pension Fund"}, {"source": "Service", "target": "Trust Fund / Pension Fund"}, {"source": "Trust Agreement / Insurance Contract", "target": "Trust Fund / Pension Fund"}, {"source": "Trustee / Funding Agent", "target": "Trust Fund / Pension Fund"}];
+const clusterLegend = [{"cluster": 0, "count": 3, "color": "#60a5fa", "description": "Foundational plan-law framework: overarching legal and plan-identity terms."}, {"cluster": 1, "count": 11, "color": "#34d399", "description": "Employment, service, compensation, timing, and administrative mechanics."}, {"cluster": 2, "count": 17, "color": "#f59e0b", "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts."}, {"cluster": 3, "count": 4, "color": "#f472b6", "description": "Funding vehicle and annuity/trust infrastructure."}, {"cluster": 4, "count": 2, "color": "#a78bfa", "description": "Sponsorship and governance actors."}, {"cluster": 5, "count": 2, "color": "#f87171", "description": "Employer-scope and controlled-group structure."}];
+const clusterColors = ["#60a5fa", "#34d399", "#f59e0b", "#f472b6", "#a78bfa", "#f87171"];
+const clusterDescriptions = {"0": "Foundational plan-law framework: overarching legal and plan-identity terms.", "1": "Employment, service, compensation, timing, and administrative mechanics.", "2": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "3": "Funding vehicle and annuity/trust infrastructure.", "4": "Sponsorship and governance actors.", "5": "Employer-scope and controlled-group structure."};
+const svg = d3.select("#graph");
+const width = svg.node().clientWidth || 1200;
+const height = svg.node().clientHeight || 860;
+
+const legendHost = document.getElementById('legend');
+legendHost.innerHTML = clusterLegend.map(d =>
+  `<div class="legend-item">
+     <span class="swatch" style="background:${d.color}"></span>
+     <div>
+       <div class="legend-title">cluster ${d.cluster + 1} (${d.count} terms)</div>
+       <div class="legend-desc">${d.description}</div>
+     </div>
+   </div>`
+).join('');
+
+const infoHost = document.getElementById('info');
+const searchBox = document.getElementById('searchBox');
+
+const defs = svg.append("defs");
+defs.append("marker")
+  .attr("id", "arrow")
+  .attr("viewBox", "0 -5 10 10")
+  .attr("refX", 18)
+  .attr("refY", 0)
+  .attr("markerWidth", 7)
+  .attr("markerHeight", 7)
+  .attr("orient", "auto")
+  .append("path")
+  .attr("d", "M0,-5L10,0L0,5")
+  .attr("fill", "rgba(164,176,190,0.55)");
+
+const zoomLayer = svg.append("g");
+const linkLayer = zoomLayer.append("g").attr("class", "links");
+const nodeLayer = zoomLayer.append("g").attr("class", "nodes");
+
+svg.call(
+  d3.zoom()
+    .scaleExtent([0.25, 3.5])
+    .on("zoom", function() {
+      zoomLayer.attr("transform", d3.event.transform);
+    })
+);
+
+const nodeById = new Map(nodes.map(d => [d.id, d]));
+const outgoing = new Map(nodes.map(d => [d.id, []]));
+const incoming = new Map(nodes.map(d => [d.id, []]));
+links.forEach(l => {
+  outgoing.get(l.source).push(l.target);
+  incoming.get(l.target).push(l.source);
+});
+
+function nodeRadius(d) {
+  return 5 + 2.3 * Math.sqrt(d.inDegree);
+}
+function collisionRadius(d) {
+  return Math.min(135, nodeRadius(d) + 14 + d.id.length * 3.1);
+}
+
+const clusterCenters = (() => {
+  const r = Math.min(width, height) * 0.28;
+  const centers = {};
+  clusterLegend.forEach((c, i) => {
+    const a = -Math.PI / 2 + (2 * Math.PI * i / clusterLegend.length);
+    centers[c.cluster] = { x: width / 2 + r * Math.cos(a), y: height / 2 + r * Math.sin(a) };
+  });
+  return centers;
+})();
+
+nodes.forEach((d, i) => {
+  const c = clusterCenters[d.cluster];
+  d.x = c.x + (Math.random() - 0.5) * 80;
+  d.y = c.y + (Math.random() - 0.5) * 80;
+});
+
+const simulation = d3.forceSimulation(nodes)
+  .force("link", d3.forceLink(links)
+    .id(d => d.id)
+    .distance(l => (l.source.cluster === l.target.cluster ? 70 : 170))
+    .strength(l => (l.source.cluster === l.target.cluster ? 0.11 : 0.03)))
+  .force("charge", d3.forceManyBody().strength(d => -650 - d.inDegree * 28))
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("x", d3.forceX(d => clusterCenters[d.cluster].x).strength(0.18))
+  .force("y", d3.forceY(d => clusterCenters[d.cluster].y).strength(0.18))
+  .force("collide", d3.forceCollide().radius(collisionRadius).iterations(2));
+
+const link = linkLayer.selectAll("line")
+  .data(links)
+  .enter()
+  .append("line")
+  .attr("class", "link");
+
+const node = nodeLayer.selectAll("g")
+  .data(nodes)
+  .enter()
+  .append("g")
+  .attr("class", "node")
+  .call(
+    d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended)
+  );
+
+node.append("circle")
+  .attr("r", d => nodeRadius(d))
+  .attr("fill", d => clusterColors[d.cluster % clusterColors.length]);
+
+node.append("text")
+  .attr("x", d => nodeRadius(d) + 4)
+  .attr("y", 4)
+  .text(d => d.id);
+
+simulation.on("tick", () => {
+  link
+    .attr("x1", d => d.source.x)
+    .attr("y1", d => d.source.y)
+    .attr("x2", d => d.target.x)
+    .attr("y2", d => d.target.y);
+
+  node.attr("transform", d => `translate(${d.x},${d.y})`);
+});
+
+function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(0.18).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+}
+
+let selectedId = null;
+
+function setInfo(id) {
+  if (!id) {
+    infoHost.innerHTML = '<div class="small">Nothing selected yet.</div>';
+    return;
+  }
+  const d = nodeById.get(id);
+  const outs = outgoing.get(id) || [];
+  const ins = incoming.get(id) || [];
+  infoHost.innerHTML = `
+    <div class="term-title mono">${d.id}</div>
+    <div class="small" style="margin-bottom:8px">
+      Section ${d.section} · semantic cluster ${d.cluster + 1} · inflow ${d.inDegree} · outflow ${d.outDegree}
+    </div>
+    <div class="small" style="margin-bottom:8px">${clusterDescriptions[d.cluster]}</div>
+    <div style="line-height:1.45; margin-bottom:10px">${escapeHtml(d.definition)}</div>
+    <div class="small">Incoming edges (${ins.length})</div>
+    <div class="neighbors">${ins.map(x => `<div class="neighbor mono">${x}</div>`).join('') || '<div class="small">None</div>'}</div>
+    <div class="small" style="margin-top:10px">Outgoing edges (${outs.length})</div>
+    <div class="neighbors">${outs.map(x => `<div class="neighbor mono">${x}</div>`).join('') || '<div class="small">None</div>'}</div>
+  `;
+}
+
+function escapeHtml(s) {
+  return s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function highlight(id) {
+  const neighborhood = new Set([id, ...(outgoing.get(id) || []), ...(incoming.get(id) || [])]);
+
+  node.classed("dim", d => !neighborhood.has(d.id))
+      .classed("highlight-node", d => d.id === id || neighborhood.has(d.id));
+
+  link.classed("dim", d => !(d.source.id === id || d.target.id === id))
+      .classed("highlight-link", d => d.source.id === id || d.target.id === id);
+}
+
+function clearHighlight() {
+  node.classed("dim", false).classed("highlight-node", false);
+  link.classed("dim", false).classed("highlight-link", false);
+}
+
+node
+  .on("mouseover", function(d) {
+    highlight(d.id);
+    setInfo(d.id);
+  })
+  .on("mouseout", function() {
+    if (selectedId) {
+      highlight(selectedId);
+      setInfo(selectedId);
+    } else {
+      clearHighlight();
+      setInfo(null);
+    }
+  })
+  .on("click", function(d) {
+    selectedId = d.id;
+    highlight(d.id);
+    setInfo(d.id);
+  });
+
+searchBox.addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  if (!q) {
+    if (selectedId) {
+      highlight(selectedId);
+      setInfo(selectedId);
+    } else {
+      clearHighlight();
+      setInfo(null);
+    }
+    return;
+  }
+  const hit = nodes.find(d => d.id.toLowerCase().includes(q));
+  if (hit) {
+    selectedId = hit.id;
+    highlight(hit.id);
+    setInfo(hit.id);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saint Rose Lifecycle State Machine v0.7</title>
+<style>
+:root {
+  --bg:#0b0d10; --panel:#121820; --panel2:#0f141b; --line:#263241; --text:#eef2f7; --muted:#a6b0bb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 430px;min-height:100vh}
+.main{padding:18px}
+.sidebar{border-left:1px solid var(--line);background:linear-gradient(180deg,var(--panel),var(--panel2));padding:18px;overflow:auto}
+.title-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+h1{margin:0;font-size:28px}
+.version-pill{display:inline-block;padding:5px 10px;border-radius:999px;background:rgba(96,165,250,0.14);border:1px solid rgba(96,165,250,0.28);color:#dbeafe;font-size:12px;font-weight:700}
+.subtitle{margin:0 0 12px 0;color:var(--muted);line-height:1.45;max-width:1100px}
+.canvas-wrap{position:relative;background:radial-gradient(circle at 50% 45%, #111827 0%, #0b0d10 70%);border:1px solid var(--line);border-radius:18px;overflow:auto;padding:18px}
+.overlay{margin-top:10px;background:rgba(12,17,25,0.82);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--muted);font-size:13px;line-height:1.35;max-width:540px}
+.section{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.section:last-child{border-bottom:0}
+.section h2{margin:0 0 10px 0;font-size:18px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 0;border-bottom:1px dashed rgba(166,176,187,0.14)}
+.kv:last-child{border-bottom:0}
+.k{color:var(--muted)} .v{color:var(--text);font-weight:700}
+.item{margin:10px 0;padding-bottom:10px;border-bottom:1px dashed rgba(166,176,187,0.14)}
+.item:last-child{border-bottom:0}
+.item-title{color:var(--text);font-weight:700;margin-bottom:4px}
+.item-desc{color:var(--muted);font-size:13px;line-height:1.4}
+.mono{font-family:Consolas,"Courier New",monospace}
+svg{max-width:100%;height:auto;display:block}
+svg text{fill:#eef2f7 !important}
+svg polygon, svg path{stroke-linejoin:round}
+@media (max-width: 1200px){ .wrap{grid-template-columns:1fr} .sidebar{border-left:0;border-top:1px solid var(--line)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main class="main">
+    <div class="title-row">
+      <h1>Participant lifecycle state machine</h1>
+      <span class="version-pill">v0.7</span>
+    </div>
+    <p class="subtitle">
+      Sample document used:
+      <a href="sandbox:/mnt/data/2019%20Plan%20Document.pdf" style="color:#93c5fd">2019 Plan Document.pdf</a>.
+      This artifact is the <strong>lifecycle / entitlement state machine</strong> for the Saint Rose plan backbone.
+      It is designed to answer: <span class="mono">what state is the person in, what event occurred, and what promise becomes available next?</span>
+    </p>
+    <div class="canvas-wrap">
+      <svg width="1147pt" height="869pt"
+ viewBox="0.00 0.00 1147.40 869.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.2 844.2)">
+<title>G</title>
+<!-- EE -->
+<g id="node1" class="node">
+<title>EE</title>
+<path fill="#374151" stroke="#e5e7eb" stroke-width="1.2" d="M118,-337C118,-337 12,-337 12,-337 6,-337 0,-331 0,-325 0,-325 0,-295 0,-295 0,-289 6,-283 12,-283 12,-283 118,-283 118,-283 124,-283 130,-289 130,-295 130,-295 130,-325 130,-325 130,-331 124,-337 118,-337"/>
+<text text-anchor="middle" x="65" y="-306.9" font-family="Arial" font-size="12.00" fill="#eef2f7">Eligible Employee</text>
+</g>
+<!-- AP -->
+<g id="node2" class="node">
+<title>AP</title>
+<path fill="#2563eb" stroke="#e5e7eb" stroke-width="1.2" d="M321,-337C321,-337 215,-337 215,-337 209,-337 203,-331 203,-325 203,-325 203,-295 203,-295 203,-289 209,-283 215,-283 215,-283 321,-283 321,-283 327,-283 333,-289 333,-295 333,-295 333,-325 333,-325 333,-331 327,-337 321,-337"/>
+<text text-anchor="middle" x="268" y="-306.9" font-family="Arial" font-size="12.00" fill="#eef2f7">Active Participant</text>
+</g>
+<!-- EE&#45;&gt;AP -->
+<g id="edge1" class="edge">
+<title>EE&#45;&gt;AP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M130.07,-310C130.07,-310 196.45,-310 196.45,-310"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="196.45,-312.28 202.95,-310 196.45,-307.73 196.45,-312.28"/>
+<text text-anchor="middle" x="166.5" y="-324" font-family="Arial" font-size="10.00" fill="#cbd5e1">participation</text>
+<text text-anchor="middle" x="166.5" y="-313" font-family="Arial" font-size="10.00" fill="#cbd5e1">§2.1(b)</text>
+</g>
+<!-- IP -->
+<g id="node3" class="node">
+<title>IP</title>
+<path fill="#1d4ed8" stroke="#e5e7eb" stroke-width="1.2" d="M321,-544C321,-544 215,-544 215,-544 209,-544 203,-538 203,-532 203,-532 203,-502 203,-502 203,-496 209,-490 215,-490 215,-490 321,-490 321,-490 327,-490 333,-496 333,-502 333,-502 333,-532 333,-532 333,-538 327,-544 321,-544"/>
+<text text-anchor="middle" x="268" y="-513.9" font-family="Arial" font-size="12.00" fill="#eef2f7">Inactive Participant</text>
+</g>
+<!-- AP&#45;&gt;IP -->
+<g id="edge2" class="edge">
+<title>AP&#45;&gt;IP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M247,-337.06C247,-337.06 247,-483.43 247,-483.43"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="244.73,-483.43 247,-489.93 249.28,-483.43 244.73,-483.43"/>
+</g>
+<!-- VP -->
+<g id="node4" class="node">
+<title>VP</title>
+<path fill="#d97706" stroke="#e5e7eb" stroke-width="1.2" d="M629,-459C629,-459 474,-459 474,-459 468,-459 462,-453 462,-447 462,-447 462,-403 462,-403 462,-397 468,-391 474,-391 474,-391 629,-391 629,-391 635,-391 641,-397 641,-403 641,-403 641,-447 641,-447 641,-453 635,-459 629,-459"/>
+<text text-anchor="middle" x="551.5" y="-428.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Vested Participant</text>
+<text text-anchor="middle" x="551.5" y="-415.4" font-family="Arial" font-size="12.00" fill="#eef2f7">(deferred / not fully distributed)</text>
+</g>
+<!-- AP&#45;&gt;VP -->
+<g id="edge6" class="edge">
+<title>AP&#45;&gt;VP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.05,-334.33C390.43,-334.33 465,-334.33 465,-334.33 465,-334.33 465,-384.48 465,-384.48"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="462.73,-384.48 465,-390.98 467.28,-384.48 462.73,-384.48"/>
+<text text-anchor="middle" x="397.5" y="-324" font-family="Arial" font-size="10.00" fill="#cbd5e1">terminate ≥ 3 YOS</text>
+<text text-anchor="middle" x="397.5" y="-313" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.3(b), §4.4</text>
+</g>
+<!-- ER -->
+<g id="node5" class="node">
+<title>ER</title>
+<path fill="#7c3aed" stroke="#e5e7eb" stroke-width="1.2" d="M617,-203C617,-203 486,-203 486,-203 480,-203 474,-197 474,-191 474,-191 474,-147 474,-147 474,-141 480,-135 486,-135 486,-135 617,-135 617,-135 623,-135 629,-141 629,-147 629,-147 629,-191 629,-191 629,-197 623,-203 617,-203"/>
+<text text-anchor="middle" x="551.5" y="-172.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Early Retirement</text>
+<text text-anchor="middle" x="551.5" y="-159.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Eligible</text>
+</g>
+<!-- AP&#45;&gt;ER -->
+<g id="edge8" class="edge">
+<title>AP&#45;&gt;ER</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M301,-282.84C301,-237.66 301,-152 301,-152 301,-152 467.46,-152 467.46,-152"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="467.46,-154.28 473.96,-152 467.46,-149.73 467.46,-154.28"/>
+<text text-anchor="middle" x="397.5" y="-194" font-family="Arial" font-size="10.00" fill="#cbd5e1">55 + 10 YOS</text>
+<text text-anchor="middle" x="397.5" y="-183" font-family="Arial" font-size="10.00" fill="#cbd5e1">§1.32(c), §4.3</text>
+</g>
+<!-- NR -->
+<g id="node6" class="node">
+<title>NR</title>
+<path fill="#8b5cf6" stroke="#e5e7eb" stroke-width="1.2" d="M617,-311C617,-311 486,-311 486,-311 480,-311 474,-305 474,-299 474,-299 474,-255 474,-255 474,-249 480,-243 486,-243 486,-243 617,-243 617,-243 623,-243 629,-249 629,-255 629,-255 629,-299 629,-299 629,-305 623,-311 617,-311"/>
+<text text-anchor="middle" x="551.5" y="-280.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Normal / Deferred</text>
+<text text-anchor="middle" x="551.5" y="-267.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Retirement Eligible</text>
+</g>
+<!-- AP&#45;&gt;NR -->
+<g id="edge10" class="edge">
+<title>AP&#45;&gt;NR</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.04,-292.33C333.04,-292.33 467.42,-292.33 467.42,-292.33"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="467.42,-294.61 473.92,-292.33 467.42,-290.06 467.42,-294.61"/>
+<text text-anchor="middle" x="397.5" y="-251" font-family="Arial" font-size="10.00" fill="#cbd5e1">age 65</text>
+<text text-anchor="middle" x="397.5" y="-240" font-family="Arial" font-size="10.00" fill="#cbd5e1">§1.32(a),(b), §4.1</text>
+</g>
+<!-- DR -->
+<g id="node7" class="node">
+<title>DR</title>
+<path fill="#059669" stroke="#e5e7eb" stroke-width="1.2" d="M617,-689C617,-689 486,-689 486,-689 480,-689 474,-683 474,-677 474,-677 474,-633 474,-633 474,-627 480,-621 486,-621 486,-621 617,-621 617,-621 623,-621 629,-627 629,-633 629,-633 629,-677 629,-677 629,-683 623,-689 617,-689"/>
+<text text-anchor="middle" x="551.5" y="-658.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Disability Retirement</text>
+<text text-anchor="middle" x="551.5" y="-645.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Eligible</text>
+</g>
+<!-- AP&#45;&gt;DR -->
+<g id="edge14" class="edge">
+<title>AP&#45;&gt;DR</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.42,-321.29C378.39,-321.29 430,-321.29 430,-321.29 430,-321.29 430,-648.2 430,-648.2 430,-648.2 467.36,-648.2 467.36,-648.2"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="467.36,-650.48 473.86,-648.2 467.36,-645.93 467.36,-650.48"/>
+<text text-anchor="middle" x="397.5" y="-692" font-family="Arial" font-size="10.00" fill="#cbd5e1">disability + 10 YOS</text>
+<text text-anchor="middle" x="397.5" y="-681" font-family="Arial" font-size="10.00" fill="#cbd5e1">§1.32(d), §4.3</text>
+</g>
+<!-- NB -->
+<g id="node8" class="node">
+<title>NB</title>
+<path fill="#4b5563" stroke="#e5e7eb" stroke-width="1.2" d="M604.5,-95C604.5,-95 498.5,-95 498.5,-95 492.5,-95 486.5,-89 486.5,-83 486.5,-83 486.5,-53 486.5,-53 486.5,-47 492.5,-41 498.5,-41 498.5,-41 604.5,-41 604.5,-41 610.5,-41 616.5,-47 616.5,-53 616.5,-53 616.5,-83 616.5,-83 616.5,-89 610.5,-95 604.5,-95"/>
+<text text-anchor="middle" x="551.5" y="-64.9" font-family="Arial" font-size="12.00" fill="#eef2f7">No Plan Benefit</text>
+</g>
+<!-- AP&#45;&gt;NB -->
+<g id="edge4" class="edge">
+<title>AP&#45;&gt;NB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M236,-282.86C236,-216.56 236,-51.8 236,-51.8 236,-51.8 479.63,-51.8 479.63,-51.8"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="479.63,-54.08 486.13,-51.8 479.63,-49.53 479.63,-54.08"/>
+<text text-anchor="middle" x="397.5" y="-144" font-family="Arial" font-size="10.00" fill="#cbd5e1">terminate &lt; 3 YOS</text>
+<text text-anchor="middle" x="397.5" y="-133" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.3(a)</text>
+</g>
+<!-- AP&#45;&gt;NB -->
+<g id="edge25" class="edge">
+<title>AP&#45;&gt;NB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M268,-282.58C268,-218.16 268,-62.6 268,-62.6 268,-62.6 479.96,-62.6 479.96,-62.6"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="479.96,-64.88 486.46,-62.6 479.96,-60.33 479.96,-64.88"/>
+<text text-anchor="middle" x="397.5" y="-84" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before vested</text>
+<text text-anchor="middle" x="397.5" y="-73" font-family="Arial" font-size="10.00" fill="#cbd5e1">§7.1</text>
+</g>
+<!-- SB -->
+<g id="node10" class="node">
+<title>SB</title>
+<path fill="#db2777" stroke="#e5e7eb" stroke-width="1.2" d="M857,-329C857,-329 726,-329 726,-329 720,-329 714,-323 714,-317 714,-317 714,-273 714,-273 714,-267 720,-261 726,-261 726,-261 857,-261 857,-261 863,-261 869,-267 869,-273 869,-273 869,-317 869,-317 869,-323 863,-329 857,-329"/>
+<text text-anchor="middle" x="791.5" y="-298.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Beneficiary Before</text>
+<text text-anchor="middle" x="791.5" y="-285.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Commencement</text>
+</g>
+<!-- AP&#45;&gt;SB -->
+<g id="edge23" class="edge">
+<title>AP&#45;&gt;SB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.24,-313.57C333.24,-313.57 707.42,-313.57 707.42,-313.57"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.42,-315.85 713.92,-313.57 707.42,-311.3 707.42,-315.85"/>
+<text text-anchor="middle" x="551.5" y="-14" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before commencement</text>
+<text text-anchor="middle" x="551.5" y="-3" font-family="Arial" font-size="10.00" fill="#cbd5e1">if vested · §7.1</text>
+</g>
+<!-- IP&#45;&gt;AP -->
+<g id="edge3" class="edge">
+<title>IP&#45;&gt;AP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M290,-489.94C290,-489.94 290,-343.57 290,-343.57"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="292.28,-343.57 290,-337.07 287.73,-343.57 292.28,-343.57"/>
+</g>
+<!-- IP&#45;&gt;VP -->
+<g id="edge7" class="edge">
+<title>IP&#45;&gt;VP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.21,-536.57C391.57,-536.57 468,-536.57 468,-536.57 468,-536.57 468,-465.58 468,-465.58"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="470.28,-465.58 468,-459.08 465.73,-465.58 470.28,-465.58"/>
+<text text-anchor="middle" x="397.5" y="-600" font-family="Arial" font-size="10.00" fill="#cbd5e1">terminate ≥ 3 YOS</text>
+<text text-anchor="middle" x="397.5" y="-589" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.3(b), §4.4</text>
+</g>
+<!-- IP&#45;&gt;ER -->
+<g id="edge9" class="edge">
+<title>IP&#45;&gt;ER</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.32,-514.29C358.79,-514.29 382,-514.29 382,-514.29 382,-514.29 382,-169 382,-169 382,-169 467.2,-169 467.2,-169"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="467.2,-171.28 473.7,-169 467.2,-166.73 467.2,-171.28"/>
+<text text-anchor="middle" x="397.5" y="-508" font-family="Arial" font-size="10.00" fill="#cbd5e1">55 + 10 YOS</text>
+<text text-anchor="middle" x="397.5" y="-497" font-family="Arial" font-size="10.00" fill="#cbd5e1">§1.32(c), §4.3</text>
+</g>
+<!-- IP&#45;&gt;NR -->
+<g id="edge11" class="edge">
+<title>IP&#45;&gt;NR</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.38,-521.71C365.75,-521.71 398,-521.71 398,-521.71 398,-521.71 398,-301.67 398,-301.67 398,-301.67 467.35,-301.67 467.35,-301.67"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="467.35,-303.94 473.85,-301.67 467.35,-299.39 467.35,-303.94"/>
+<text text-anchor="middle" x="397.5" y="-554" font-family="Arial" font-size="10.00" fill="#cbd5e1">age 65</text>
+<text text-anchor="middle" x="397.5" y="-543" font-family="Arial" font-size="10.00" fill="#cbd5e1">§1.32(a),(b), §4.1</text>
+</g>
+<!-- IP&#45;&gt;DR -->
+<g id="edge15" class="edge">
+<title>IP&#45;&gt;DR</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M247,-544.23C247,-589.52 247,-675.4 247,-675.4 247,-675.4 467.37,-675.4 467.37,-675.4"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="467.37,-677.68 473.87,-675.4 467.37,-673.13 467.37,-677.68"/>
+<text text-anchor="middle" x="397.5" y="-784" font-family="Arial" font-size="10.00" fill="#cbd5e1">disability + 10 YOS</text>
+<text text-anchor="middle" x="397.5" y="-773" font-family="Arial" font-size="10.00" fill="#cbd5e1">§1.32(d), §4.3</text>
+</g>
+<!-- IP&#45;&gt;NB -->
+<g id="edge5" class="edge">
+<title>IP&#45;&gt;NB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.01,-499.43C342.96,-499.43 350,-499.43 350,-499.43 350,-499.43 350,-73.4 350,-73.4 350,-73.4 479.86,-73.4 479.86,-73.4"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="479.86,-75.68 486.36,-73.4 479.86,-71.13 479.86,-75.68"/>
+<text text-anchor="middle" x="397.5" y="-416" font-family="Arial" font-size="10.00" fill="#cbd5e1">terminate &lt; 3 YOS</text>
+<text text-anchor="middle" x="397.5" y="-405" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.3(a)</text>
+</g>
+<!-- IP&#45;&gt;NB -->
+<g id="edge26" class="edge">
+<title>IP&#45;&gt;NB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.09,-506.86C351.2,-506.86 366,-506.86 366,-506.86 366,-506.86 366,-84.2 366,-84.2 366,-84.2 479.86,-84.2 479.86,-84.2"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="479.86,-86.48 486.36,-84.2 479.86,-81.93 479.86,-86.48"/>
+<text text-anchor="middle" x="397.5" y="-462" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before vested</text>
+<text text-anchor="middle" x="397.5" y="-451" font-family="Arial" font-size="10.00" fill="#cbd5e1">§7.1</text>
+</g>
+<!-- IP&#45;&gt;SB -->
+<g id="edge24" class="edge">
+<title>IP&#45;&gt;SB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M333.31,-529.14C372.19,-529.14 414,-529.14 414,-529.14 414,-529.14 414,-316.14 414,-316.14 414,-316.14 707.24,-316.14 707.24,-316.14"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.24,-318.42 713.74,-316.14 707.24,-313.87 707.24,-318.42"/>
+<text text-anchor="middle" x="551.5" y="-811" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before commencement</text>
+<text text-anchor="middle" x="551.5" y="-800" font-family="Arial" font-size="10.00" fill="#cbd5e1">if vested · §7.1</text>
+</g>
+<!-- VP&#45;&gt;AP -->
+<g id="edge22" class="edge">
+<title>VP&#45;&gt;AP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M468,-390.78C468,-364.14 468,-331.67 468,-331.67 468,-331.67 339.71,-331.67 339.71,-331.67"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="339.71,-329.39 333.21,-331.67 339.71,-333.94 339.71,-329.39"/>
+<text text-anchor="middle" x="397.5" y="-370" font-family="Arial" font-size="10.00" fill="#cbd5e1">reemployed; vesting continues</text>
+<text text-anchor="middle" x="397.5" y="-359" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.3(d), §5.4</text>
+</g>
+<!-- VP&#45;&gt;ER -->
+<g id="edge12" class="edge">
+<title>VP&#45;&gt;ER</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M471,-390.76C471,-324.67 471,-186 471,-186 471,-186 471.27,-186 471.27,-186"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="467.18,-188.28 473.68,-186 467.18,-183.73 467.18,-188.28"/>
+<text text-anchor="middle" x="397.5" y="-257" font-family="Arial" font-size="10.00" fill="#cbd5e1">55 + 10 YOS</text>
+<text text-anchor="middle" x="397.5" y="-246" font-family="Arial" font-size="10.00" fill="#cbd5e1">§8.3(d)(i)</text>
+</g>
+<!-- VP&#45;&gt;NR -->
+<g id="edge13" class="edge">
+<title>VP&#45;&gt;NR</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M526,-390.67C526,-390.67 526,-317.64 526,-317.64"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="528.28,-317.64 526,-311.14 523.73,-317.64 528.28,-317.64"/>
+</g>
+<!-- RP -->
+<g id="node9" class="node">
+<title>RP</title>
+<path fill="#0ea5e9" stroke="#e5e7eb" stroke-width="1.2" d="M857,-446C857,-446 726,-446 726,-446 720,-446 714,-440 714,-434 714,-434 714,-390 714,-390 714,-384 720,-378 726,-378 726,-378 857,-378 857,-378 863,-378 869,-384 869,-390 869,-390 869,-434 869,-434 869,-440 863,-446 857,-446"/>
+<text text-anchor="middle" x="791.5" y="-415.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Retired Participant /</text>
+<text text-anchor="middle" x="791.5" y="-402.4" font-family="Arial" font-size="12.00" fill="#eef2f7">In Pay</text>
+</g>
+<!-- VP&#45;&gt;RP -->
+<g id="edge16" class="edge">
+<title>VP&#45;&gt;RP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M641.21,-418.5C641.21,-418.5 707.22,-418.5 707.22,-418.5"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.22,-420.78 713.72,-418.5 707.22,-416.23 707.22,-420.78"/>
+<text text-anchor="middle" x="677.5" y="-434" font-family="Arial" font-size="10.00" fill="#cbd5e1">immediate permitted forms</text>
+<text text-anchor="middle" x="677.5" y="-423" font-family="Arial" font-size="10.00" fill="#cbd5e1">§8.3(d)(ii)</text>
+</g>
+<!-- VP&#45;&gt;SB -->
+<g id="edge27" class="edge">
+<title>VP&#45;&gt;SB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M637,-390.76C637,-361.42 637,-323.86 637,-323.86 637,-323.86 707.3,-323.86 707.3,-323.86"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.3,-326.13 713.8,-323.86 707.3,-321.58 707.3,-326.13"/>
+<text text-anchor="middle" x="677.5" y="-387" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before commencement</text>
+<text text-anchor="middle" x="677.5" y="-376" font-family="Arial" font-size="10.00" fill="#cbd5e1">§7.1, §7.3</text>
+</g>
+<!-- ER&#45;&gt;RP -->
+<g id="edge17" class="edge">
+<title>ER&#45;&gt;RP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M629.07,-157.67C631.56,-157.67 633,-157.67 633,-157.67 633,-157.67 633,-382.33 633,-382.33 633,-382.33 707.14,-382.33 707.14,-382.33"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.14,-384.61 713.64,-382.33 707.14,-380.06 707.14,-384.61"/>
+<text text-anchor="middle" x="677.5" y="-238" font-family="Arial" font-size="10.00" fill="#cbd5e1">retire + commence</text>
+<text text-anchor="middle" x="677.5" y="-227" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.1, §8.3</text>
+</g>
+<!-- ER&#45;&gt;SB -->
+<g id="edge28" class="edge">
+<title>ER&#45;&gt;SB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M629.25,-180.33C699.52,-180.33 792,-180.33 792,-180.33 792,-180.33 792,-254.41 792,-254.41"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="789.73,-254.41 792,-260.91 794.28,-254.41 789.73,-254.41"/>
+<text text-anchor="middle" x="677.5" y="-187" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before commencement</text>
+<text text-anchor="middle" x="677.5" y="-176" font-family="Arial" font-size="10.00" fill="#cbd5e1">§7.1, §7.3</text>
+</g>
+<!-- NR&#45;&gt;RP -->
+<g id="edge18" class="edge">
+<title>NR&#45;&gt;RP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M578,-311.1C578,-343.29 578,-386.67 578,-386.67 578,-386.67 707.32,-386.67 707.32,-386.67"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.32,-388.94 713.82,-386.67 707.32,-384.39 707.32,-388.94"/>
+<text text-anchor="middle" x="677.5" y="-339" font-family="Arial" font-size="10.00" fill="#cbd5e1">retire + commence</text>
+<text text-anchor="middle" x="677.5" y="-328" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.1, §8.3</text>
+</g>
+<!-- NR&#45;&gt;SB -->
+<g id="edge29" class="edge">
+<title>NR&#45;&gt;SB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M629.09,-286C629.09,-286 707.27,-286 707.27,-286"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.27,-288.28 713.77,-286 707.27,-283.73 707.27,-288.28"/>
+<text text-anchor="middle" x="677.5" y="-292" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before commencement</text>
+<text text-anchor="middle" x="677.5" y="-281" font-family="Arial" font-size="10.00" fill="#cbd5e1">§7.1, §7.3</text>
+</g>
+<!-- DR&#45;&gt;AP -->
+<g id="edge20" class="edge">
+<title>DR&#45;&gt;AP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M474,-634.6C458.04,-634.6 446,-634.6 446,-634.6 446,-634.6 446,-318.71 446,-318.71 446,-318.71 339.52,-318.71 339.52,-318.71"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="339.52,-316.44 333.02,-318.71 339.52,-320.99 339.52,-316.44"/>
+<text text-anchor="middle" x="397.5" y="-646" font-family="Arial" font-size="10.00" fill="#cbd5e1">reemployed after disability</text>
+<text text-anchor="middle" x="397.5" y="-635" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.2(a)</text>
+</g>
+<!-- DR&#45;&gt;IP -->
+<g id="edge21" class="edge">
+<title>DR&#45;&gt;IP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M473.75,-661.8C396.67,-661.8 290,-661.8 290,-661.8 290,-661.8 290,-550.74 290,-550.74"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="292.28,-550.74 290,-544.24 287.73,-550.74 292.28,-550.74"/>
+<text text-anchor="middle" x="397.5" y="-738" font-family="Arial" font-size="10.00" fill="#cbd5e1">reemployed after disability</text>
+<text text-anchor="middle" x="397.5" y="-727" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.2(a)</text>
+</g>
+<!-- DR&#45;&gt;RP -->
+<g id="edge19" class="edge">
+<title>DR&#45;&gt;RP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M629.25,-666.33C699.52,-666.33 792,-666.33 792,-666.33 792,-666.33 792,-452.54 792,-452.54"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="794.28,-452.54 792,-446.04 789.73,-452.54 794.28,-452.54"/>
+<text text-anchor="middle" x="677.5" y="-609" font-family="Arial" font-size="10.00" fill="#cbd5e1">commence disability retirement</text>
+<text text-anchor="middle" x="677.5" y="-598" font-family="Arial" font-size="10.00" fill="#cbd5e1">§4.3, §5.2, §8.3</text>
+</g>
+<!-- DR&#45;&gt;SB -->
+<g id="edge30" class="edge">
+<title>DR&#45;&gt;SB</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M629.09,-643.67C655.28,-643.67 678,-643.67 678,-643.67 678,-643.67 678,-326.43 678,-326.43 678,-326.43 707.41,-326.43 707.41,-326.43"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="707.41,-328.7 713.91,-326.43 707.41,-324.15 707.41,-328.7"/>
+<text text-anchor="middle" x="677.5" y="-533" font-family="Arial" font-size="10.00" fill="#cbd5e1">death before commencement</text>
+<text text-anchor="middle" x="677.5" y="-522" font-family="Arial" font-size="10.00" fill="#cbd5e1">§7.1, §7.3</text>
+</g>
+<!-- SP -->
+<g id="node11" class="node">
+<title>SP</title>
+<path fill="#0891b2" stroke="#e5e7eb" stroke-width="1.2" d="M1085,-492C1085,-492 954,-492 954,-492 948,-492 942,-486 942,-480 942,-480 942,-436 942,-436 942,-430 948,-424 954,-424 954,-424 1085,-424 1085,-424 1091,-424 1097,-430 1097,-436 1097,-436 1097,-480 1097,-480 1097,-486 1091,-492 1085,-492"/>
+<text text-anchor="middle" x="1019.5" y="-461.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Benefit Suspended on</text>
+<text text-anchor="middle" x="1019.5" y="-448.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Reemployment</text>
+</g>
+<!-- RP&#45;&gt;SP -->
+<g id="edge31" class="edge">
+<title>RP&#45;&gt;SP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M869.01,-431.33C869.01,-431.33 935.32,-431.33 935.32,-431.33"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="935.32,-433.61 941.82,-431.33 935.32,-429.06 935.32,-433.61"/>
+<text text-anchor="middle" x="905.5" y="-472" font-family="Arial" font-size="10.00" fill="#cbd5e1">reemployed after commencement</text>
+<text text-anchor="middle" x="905.5" y="-461" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.5</text>
+</g>
+<!-- SA -->
+<g id="node12" class="node">
+<title>SA</title>
+<path fill="#ec4899" stroke="#e5e7eb" stroke-width="1.2" d="M1085,-384C1085,-384 954,-384 954,-384 948,-384 942,-378 942,-372 942,-372 942,-328 942,-328 942,-322 948,-316 954,-316 954,-316 1085,-316 1085,-316 1091,-316 1097,-322 1097,-328 1097,-328 1097,-372 1097,-372 1097,-378 1091,-384 1085,-384"/>
+<text text-anchor="middle" x="1019.5" y="-353.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Beneficiary After</text>
+<text text-anchor="middle" x="1019.5" y="-340.4" font-family="Arial" font-size="12.00" fill="#eef2f7">Commencement</text>
+</g>
+<!-- RP&#45;&gt;SA -->
+<g id="edge33" class="edge">
+<title>RP&#45;&gt;SA</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M869.18,-404C935.42,-404 1020,-404 1020,-404 1020,-404 1020,-390.7 1020,-390.7"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="1022.28,-390.7 1020,-384.2 1017.73,-390.7 1022.28,-390.7"/>
+<text text-anchor="middle" x="905.5" y="-364" font-family="Arial" font-size="10.00" fill="#cbd5e1">death after commencement</text>
+<text text-anchor="middle" x="905.5" y="-353" font-family="Arial" font-size="10.00" fill="#cbd5e1">§7.2</text>
+</g>
+<!-- SP&#45;&gt;RP -->
+<g id="edge32" class="edge">
+<title>SP&#45;&gt;RP</title>
+<path fill="none" stroke="#94a3b8" stroke-width="1.2" d="M941.99,-438.67C941.99,-438.67 875.68,-438.67 875.68,-438.67"/>
+<polygon fill="#94a3b8" stroke="#94a3b8" stroke-width="1.2" points="875.68,-436.39 869.18,-438.67 875.68,-440.94 875.68,-436.39"/>
+<text text-anchor="middle" x="905.5" y="-426" font-family="Arial" font-size="10.00" fill="#cbd5e1">service ends; payments resume</text>
+<text text-anchor="middle" x="905.5" y="-415" font-family="Arial" font-size="10.00" fill="#cbd5e1">§5.5(b),(c)</text>
+</g>
+</g>
+</svg>
+
+      <div class="overlay">
+        Read left to right. The most important structural split is:
+        <strong>participation → vesting / retirement eligibility → commencement → death / suspension / survivor consequences</strong>.
+      </div>
+    </div>
+  </main>
+  <aside class="sidebar">
+    <section class="section">
+      <h2>Summary</h2>
+      <div class="kv"><div class="k">Document</div><div class="v">Saint Rose 2019</div></div>
+      <div class="kv"><div class="k">Artifact</div><div class="v">Lifecycle state machine</div></div>
+      <div class="kv"><div class="k">Primary sections used</div><div class="v">§1.26, §1.31–1.34, §2.1–2.2, §4.1–4.4, §5.1–5.5, §7.1–7.3, §8.3</div></div>
+    </section>
+    <section class="section">
+      <h2>Interpretive notes</h2>
+      
+<div class="item"><div class="item-title">What this artifact makes explicit</div>
+<div class="item-desc">
+1. Participation creates the active state.<br>
+2. Excluded-class changes create the inactive state.<br>
+3. Termination before three years leads to no benefit.<br>
+4. Termination after three years creates the vested deferred branch.<br>
+5. Early retirement = age 55 plus 10 Years of Service.<br>
+6. Normal retirement = age 65; deferred retirement is later commencement after that date.<br>
+7. Disability retirement is its own branch.<br>
+8. Death logic splits before-commencement and after-commencement.<br>
+9. Reemployment after commencement triggers benefit suspension logic.
+</div></div>
+
+    </section>
+    <section class="section">
+      <h2>State meanings</h2>
+      <div class="item"><div class="item-title mono">Eligible Employee</div><div class="item-desc">Employee who satisfies plan-eligibility conditions but has not yet been shown here as an Active Participant.</div></div><div class="item"><div class="item-title mono">Active Participant</div><div class="item-desc">Eligible Employee participating in the Plan. Source: §1.26(a), §2.1.</div></div><div class="item"><div class="item-title mono">Inactive Participant</div><div class="item-desc">Former Active Participant who is no longer active because of status/class change while still employed. Source: §1.26(b), §2.2.</div></div><div class="item"><div class="item-title mono">Vested Participant / (deferred / not fully distributed)</div><div class="item-desc">Current or former Eligible Employee, not yet retired, with vested Accrued Benefit not fully distributed. Source: §1.26(d), §4.4, §5.3.</div></div><div class="item"><div class="item-title mono">Early Retirement / Eligible</div><div class="item-desc">Participant at age 55 with 10 Years of Service. Source: §1.32(c), §4.3, §5.1.</div></div><div class="item"><div class="item-title mono">Normal / Deferred / Retirement Eligible</div><div class="item-desc">Participant at age 65 or later deferral. Source: §1.32(a),(b),(d), §4.1, §4.2, §5.1.</div></div><div class="item"><div class="item-title mono">Disability Retirement / Eligible</div><div class="item-desc">Active or Inactive Participant with Disability and 10 Years of Service. Source: §1.32(d), §4.3, §5.2.</div></div><div class="item"><div class="item-title mono">Retired Participant / / In Pay</div><div class="item-desc">Former Eligible Employee whose employment terminated and who is eligible for or receiving retirement benefit. Source: §1.26(c), §5.1, §8.3.</div></div><div class="item"><div class="item-title mono">Benefit Suspended on / Reemployment</div><div class="item-desc">Participant reemployed after benefit commencement; monthly retirement benefit may be suspended. Source: §5.5.</div></div><div class="item"><div class="item-title mono">Beneficiary Before / Commencement</div><div class="item-desc">Pre-commencement survivor stream for spouse / beneficiary when death occurs before retirement income begins. Source: §7.1, §7.3.</div></div><div class="item"><div class="item-title mono">Beneficiary After / Commencement</div><div class="item-desc">Post-commencement survivor or residual-payment stream. Source: §7.2.</div></div><div class="item"><div class="item-title mono">No Plan Benefit</div><div class="item-desc">Absorbing no-benefit outcome where plan promises nothing under the specified trigger. Source: §5.3(a), opening sentence of §7.1.</div></div>
+    </section>
+  </aside>
+</div>
+</body>
+</html>

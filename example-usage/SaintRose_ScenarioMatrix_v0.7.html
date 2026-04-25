@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Saint Rose Canonical Benefit Scenario Matrix v0.7</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#121821;
+    --panel2:#171f2b;
+    --grid:#263142;
+    --text:#e8eef7;
+    --muted:#9fb0c7;
+    --accent:#78a6ff;
+    --good:#4ec9b0;
+    --warn:#d7ba7d;
+    --bad:#f48771;
+    --violet:#b391ff;
+    --teal:#4cc9f0;
+    --orange:#ffb86b;
+    --rose:#ff7aa2;
+    --shadow:0 8px 26px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font:14px/1.45 Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    min-height:100vh;
+  }
+  aside{
+    border-right:1px solid var(--grid);
+    background:linear-gradient(180deg,#10161f,#0d131b 70%);
+    padding:18px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow:auto;
+  }
+  main{padding:18px 20px 28px 20px; overflow:auto}
+  h1,h2,h3{margin:0 0 10px 0; line-height:1.2}
+  h1{font-size:22px}
+  h2{font-size:16px; color:var(--accent); margin-top:18px}
+  h3{font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em}
+  p{margin:8px 0; color:var(--muted)}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--grid);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:var(--shadow);
+  }
+  .tiny{font-size:12px; color:var(--muted)}
+  .version{display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--grid); background:var(--panel2); color:var(--accent); font-weight:600}
+  .controls{display:grid; gap:10px; margin-top:16px}
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:4px}
+  select,input{
+    width:100%;
+    background:#0d131b;
+    color:var(--text);
+    border:1px solid var(--grid);
+    border-radius:10px;
+    padding:10px 12px;
+    outline:none;
+  }
+  .legend{display:grid; gap:8px; margin-top:10px}
+  .lg{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
+  .sw{width:12px; height:12px; border-radius:3px}
+  .summary-grid{display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:12px; margin-bottom:16px}
+  .metric{background:var(--panel); border:1px solid var(--grid); border-radius:14px; padding:12px}
+  .metric .n{font-size:24px; font-weight:700; margin-top:6px}
+  .spine{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+    margin:14px 0 18px 0;
+  }
+  .step{
+    background:var(--panel);
+    border:1px solid var(--grid);
+    border-radius:14px;
+    padding:12px;
+    position:relative;
+    min-height:92px;
+  }
+  .step:not(:last-child)::after{
+    content:"→";
+    position:absolute;
+    right:-12px; top:50%; transform:translateY(-50%);
+    color:var(--accent); font-weight:700; font-size:18px;
+  }
+  .step .k{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted)}
+  .step .v{font-size:14px; margin-top:8px}
+  table{width:100%; border-collapse:separate; border-spacing:0; font-size:13px}
+  thead th{
+    position:sticky; top:0; z-index:2;
+    background:#0f1620;
+    color:#dce7f8;
+    border-bottom:1px solid var(--grid);
+    text-align:left;
+    padding:12px 10px;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:11px 10px;
+    border-bottom:1px solid rgba(38,49,66,.75);
+    vertical-align:top;
+    color:#d8e2f1;
+  }
+  tbody tr{
+    background:rgba(18,24,33,.68);
+    cursor:pointer;
+  }
+  tbody tr:nth-child(even){background:rgba(23,31,43,.72)}
+  tbody tr:hover{background:#1a2431}
+  tbody tr.active{outline:2px solid var(--accent); outline-offset:-2px}
+  .pill{
+    display:inline-block; padding:3px 8px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.02em;
+    border:1px solid transparent;
+  }
+  .fam-ret{background:rgba(76,201,240,.14); color:var(--teal); border-color:rgba(76,201,240,.28)}
+  .fam-def{background:rgba(179,145,255,.14); color:var(--violet); border-color:rgba(179,145,255,.28)}
+  .fam-death{background:rgba(255,122,162,.14); color:var(--rose); border-color:rgba(255,122,162,.28)}
+  .fam-admin{background:rgba(255,184,107,.14); color:var(--orange); border-color:rgba(255,184,107,.28)}
+  .fam-none{background:rgba(244,135,113,.14); color:var(--bad); border-color:rgba(244,135,113,.28)}
+  .nowrap{white-space:nowrap}
+  .detail{
+    display:grid; grid-template-columns:1.15fr .85fr; gap:16px; margin-top:18px;
+  }
+  .kv{display:grid; grid-template-columns:150px 1fr; gap:8px 10px; font-size:13px}
+  .kv .k{color:var(--muted)}
+  .pipeline{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px}
+  .node{
+    padding:10px 12px; border-radius:12px; border:1px solid var(--grid); background:var(--panel2); min-width:140px;
+  }
+  .arrow{color:var(--accent); font-weight:700}
+  .sec{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; color:#c8d6ec}
+  .muted{color:var(--muted)}
+  .foot{margin-top:18px; font-size:12px; color:var(--muted)}
+  a{color:#9cc2ff; text-decoration:none}
+  .note{border-left:3px solid var(--accent); padding-left:10px; color:var(--muted)}
+  @media (max-width:1180px){
+    .wrap{grid-template-columns:1fr}
+    aside{position:static; height:auto; border-right:none; border-bottom:1px solid var(--grid)}
+    .summary-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}
+    .spine{grid-template-columns:repeat(2,1fr)}
+    .detail{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside>
+    <div class="version">v0.7</div>
+    <h1 style="margin-top:10px">Canonical Benefit Scenario Matrix</h1>
+    <p>Sample plan: <strong>College of Saint Rose Non-Contract Employees' Pension Plan (as amended 2019)</strong>.</p>
+    <p class="note">This artifact is designed to feel closer to programming: case → governing sections → required inputs → formula path → final output family.</p>
+
+    <h2>Filters</h2>
+    <div class="controls">
+      <div>
+        <label for="search">Search</label>
+        <input id="search" type="text" placeholder="search scenario, section, benefit family"/>
+      </div>
+      <div>
+        <label for="familyFilter">Benefit family</label>
+        <select id="familyFilter">
+          <option value="all">All</option>
+          <option value="retirement">Retirement</option>
+          <option value="deferred vested">Deferred vested</option>
+          <option value="death / survivor">Death / survivor</option>
+          <option value="restoration / administration">Restoration / administration</option>
+          <option value="no benefit">No benefit</option>
+        </select>
+      </div>
+      <div>
+        <label for="statusFilter">State group</label>
+        <select id="statusFilter">
+          <option value="all">All</option>
+          <option value="active/inactive participant">Active / inactive participant</option>
+          <option value="vested participant">Vested participant</option>
+          <option value="retired participant / in pay">Retired participant / in pay</option>
+          <option value="beneficiary / spouse">Beneficiary / spouse</option>
+          <option value="reemployment / restoration">Reemployment / restoration</option>
+        </select>
+      </div>
+    </div>
+
+    <h2>Benefit-family legend</h2>
+    <div class="legend">
+      <div class="lg"><span class="sw" style="background:var(--teal)"></span> Retirement</div>
+      <div class="lg"><span class="sw" style="background:var(--violet)"></span> Deferred vested</div>
+      <div class="lg"><span class="sw" style="background:var(--rose)"></span> Death / survivor</div>
+      <div class="lg"><span class="sw" style="background:var(--orange)"></span> Restoration / administration</div>
+      <div class="lg"><span class="sw" style="background:var(--bad)"></span> No benefit</div>
+    </div>
+
+    <h2>Use</h2>
+    <p>1. Pick the participant situation.</p>
+    <p>2. Read governing sections.</p>
+    <p>3. Read the pipeline.</p>
+    <p>4. Program the path, not the whole plan at once.</p>
+
+    <div class="foot">
+      Recommended next artifact after this one: <strong>per-scenario calculation pipelines</strong>, one HTML page or one worksheet per row below.
+    </div>
+  </aside>
+
+  <main>
+    <div class="summary-grid">
+      <div class="metric"><div class="tiny">Canonical scenarios</div><div class="n" id="metricCount">10</div></div>
+      <div class="metric"><div class="tiny">Distinct benefit families</div><div class="n">5</div></div>
+      <div class="metric"><div class="tiny">Core governing articles</div><div class="n">1, 2, 4, 5, 6, 7, 8</div></div>
+      <div class="metric"><div class="tiny">Major computational inputs</div><div class="n">Age · Service · Compensation · Status · Form</div></div>
+    </div>
+
+    <h2>Global computational spine</h2>
+    <div class="spine">
+      <div class="step"><div class="k">1. state</div><div class="v">active / inactive / vested / retired / beneficiary</div></div>
+      <div class="step"><div class="k">2. trigger</div><div class="v">termination / retirement / disability / death / rehire</div></div>
+      <div class="step"><div class="k">3. gate</div><div class="v">service, age, vesting, spouse, break-in-service</div></div>
+      <div class="step"><div class="k">4. base benefit</div><div class="v">accrued benefit or normal-form retirement income</div></div>
+      <div class="step"><div class="k">5. adjustment</div><div class="v">early / disability / deferred / restoration / 436 limits</div></div>
+      <div class="step"><div class="k">6. payout</div><div class="v">normal form, optional form, spouse/survivor stream, or no benefit</div></div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:auto">
+      <table id="matrixTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Scenario</th>
+            <th>State group</th>
+            <th>Trigger</th>
+            <th>Benefit family</th>
+            <th>Governing sections</th>
+            <th>Base formula / rule</th>
+            <th>Key inputs</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="detail">
+      <div class="card">
+        <h2 id="detailTitle">Select a scenario</h2>
+        <div class="kv" id="detailKV"></div>
+      </div>
+      <div class="card">
+        <h2>Pipeline</h2>
+        <div id="pipeline" class="pipeline"></div>
+        <h2 style="margin-top:18px">Programming note</h2>
+        <p id="programmingNote" class="muted"></p>
+      </div>
+    </div>
+
+    <div class="foot">Prepared as a case-first computational atlas entry for the Saint Rose sample plan.</div>
+  </main>
+</div>
+
+<script>
+const scenarios = [
+  {
+    id:'S1',
+    scenario:'Termination before vesting threshold',
+    stateGroup:'active/inactive participant',
+    trigger:'termination of employment before retirement and before 3 years of service',
+    family:'no benefit',
+    sections:'§5.3(a); §1.26; §4.4',
+    base:'No benefit payable if termination occurs before qualification for other benefits and before completion of 3 Years of Service.',
+    inputs:'termination date; years of service; participant classification',
+    output:'No plan benefit',
+    commencement:'None',
+    service:'Years of Service',
+    compensation:'Not needed beyond vesting gate',
+    adjustments:'None',
+    forms:'None',
+    note:'This is the first hard branch. It should be tested before all formula work.',
+    pipeline:['state','termination event','years of service < 3','fail vesting gate','no benefit']
+  },
+  {
+    id:'S2',
+    scenario:'Termination after vesting, before early-retirement eligibility',
+    stateGroup:'vested participant',
+    trigger:'termination of employment with 3+ years of service but not yet at retirement',
+    family:'deferred vested',
+    sections:'§5.3(b)-(c); §4.4; §1.32(a); §8.3',
+    base:'Vested interest in Accrued Benefit, payable at Normal Retirement Date unless earlier commencement is otherwise permitted.',
+    inputs:'termination date; years of service; vesting schedule; accrued benefit; NRD',
+    output:'Deferred vested retirement benefit',
+    commencement:'At NRD, with possible commencement under §8.3',
+    service:'Years of Service for vesting; Credited Service for accrued benefit',
+    compensation:'Average Compensation embedded in Accrued Benefit',
+    adjustments:'Vesting percentage; any permitted commencement adjustments',
+    forms:'Article 6 optional-form layer; spousal protections if applicable',
+    note:'This is the standard deferred-vested programming branch.',
+    pipeline:['state','termination event','vesting % from service','accrued benefit','defer to NRD / §8.3','pay in selected form']
+  },
+  {
+    id:'S3',
+    scenario:'Early retirement case',
+    stateGroup:'active/inactive participant',
+    trigger:'retirement on or after age 55 with at least 10 Years of Service',
+    family:'retirement',
+    sections:'§1.32(c); §4.3; §5.1; §1.2(c)(i)',
+    base:'Actuarial Equivalent of Accrued Benefit as of Early Retirement Date.',
+    inputs:'age; service; accrued benefit; retirement date; actuarial-equivalence basis',
+    output:'Early retirement benefit',
+    commencement:'At Early Retirement Date / actual commencement date',
+    service:'10 Years of Service gate; Credited Service in accrued benefit',
+    compensation:'Average Compensation inside Accrued Benefit',
+    adjustments:'Early commencement reduction: 5/9 of 1% for first 60 months early and 5/18 of 1% for next 60 months, unless plan comparison rule yields larger normal-equivalent amount',
+    forms:'Article 6 optional-form layer',
+    note:'Program as accrued-benefit branch plus early-commencement layer.',
+    pipeline:['state','age 55 + 10 YOS gate','accrued benefit at ERD','early reduction / AEQ','optional form','pay']
+  },
+  {
+    id:'S4',
+    scenario:'Normal retirement case',
+    stateGroup:'active/inactive participant',
+    trigger:'retirement at Normal Retirement Date (age 65)',
+    family:'retirement',
+    sections:'§1.32(a); §4.1(a)-(b); §5.1; §1.24',
+    base:'Normal Form of Retirement Income = monthly amount based on 1.25% × Average Compensation × Credited Service, subject to greater-of comparisons and maximum limits.',
+    inputs:'DOB; NRD; Average Compensation; Credited Service; participant class; top-heavy status if relevant',
+    output:'Normal retirement income',
+    commencement:'First day of month coincident with or next following NRD',
+    service:'Credited Service',
+    compensation:'Average Compensation',
+    adjustments:'Greater-of comparisons vs early-retirement-equivalent and Accrued Benefit; Section 4.5 maximum limitation',
+    forms:'Normal form or Article 6 optional form',
+    note:'This is the cleanest base-formula branch and should be your reference implementation.',
+    pipeline:['state','attain age 65','compute Avg Comp + Credited Service','normal-form income','apply greater-of tests + max limit','selected form / pay']
+  },
+  {
+    id:'S5',
+    scenario:'Deferred / late retirement after NRD',
+    stateGroup:'active/inactive participant',
+    trigger:'participant remains employed beyond NRD and retires later',
+    family:'retirement',
+    sections:'§1.32(d? no, deferred in §1.32(c?) see §1.32(c) deferred); §4.2(a)-(c); §1.2(d); §8.3(g)',
+    base:'Greater of benefit determined at actual Retirement Date under current formula or Actuarial Equivalent of NRD amount.',
+    inputs:'NRD; actual retirement date; Average Compensation at actual retirement; Credited Service at actual retirement; benefit already in pay status if any',
+    output:'Deferred / late retirement benefit',
+    commencement:'On Deferred Retirement Date or mandatory commencement under §8.3(g)',
+    service:'Credited Service through actual retirement, subject to freeze/amendment dates',
+    compensation:'Average Compensation at actual retirement date',
+    adjustments:'Actuarial increase for deferred commencement; anti-double-count reduction for continued accrual after commencement; Section 415 / commencement constraints',
+    forms:'Normal form or Article 6 optional form',
+    note:'This branch is where continued employment, late factors, and mandatory-commencement logic meet.',
+    pipeline:['state','work past NRD','recompute current formula','compare with AEQ of NRD amount','apply late / mandatory commencement rules','pay']
+  },
+  {
+    id:'S6',
+    scenario:'Disability retirement case',
+    stateGroup:'active/inactive participant',
+    trigger:'disability before NRD with at least 10 Years of Service',
+    family:'retirement',
+    sections:'§1.16; §1.32(d); §4.3; §5.2; §1.2(c)(ii)',
+    base:'Actuarial Equivalent of Accrued Benefit as of Disability Retirement Date.',
+    inputs:'disability date; service; accrued benefit; disability determination; reemployment status',
+    output:'Disability retirement benefit',
+    commencement:'At Disability Retirement Date',
+    service:'10 Years of Service gate; service credit on reemployment path under §5.2',
+    compensation:'Average Compensation inside Accrued Benefit',
+    adjustments:'Disability-specific actuarial reduction before NRD using §1.2(b) assumptions; election interaction with vested or early-retirement alternative benefits',
+    forms:'Article 6 optional-form layer',
+    note:'This is not merely “early retirement.” It has its own gate and reemployment consequences.',
+    pipeline:['state','disability determination','10 YOS gate','accrued benefit at disability date','disability AEQ reduction','optional form / pay']
+  },
+  {
+    id:'S7',
+    scenario:'Death before commencement, not vested',
+    stateGroup:'beneficiary / spouse',
+    trigger:'participant dies before Annuity Starting Date and before becoming a Vested Participant',
+    family:'no benefit',
+    sections:'§7.1 (opening rule); §1.26(d); §1.17',
+    base:'No pre-commencement death benefit if participant had not become vested.',
+    inputs:'death date; vested status; spouse / beneficiary status',
+    output:'No survivor benefit',
+    commencement:'None',
+    service:'Vesting gate only',
+    compensation:'Not reached',
+    adjustments:'None',
+    forms:'None',
+    note:'Check vested status immediately at death. That resolves this branch fast.',
+    pipeline:['state','death before commencement','check vested status','not vested','no survivor benefit']
+  },
+  {
+    id:'S8',
+    scenario:'Death before commencement, vested participant / spouse-protected branch',
+    stateGroup:'beneficiary / spouse',
+    trigger:'participant dies before Annuity Starting Date after becoming vested',
+    family:'death / survivor',
+    sections:'§7.1; §7.3; §6.2; §6.3; §1.17; §1.2(e); §1.29',
+    base:'Pre-commencement survivor benefit governed by Article 7 and spouse-protection rules under Article 6.',
+    inputs:'vested status; marital status; protected spouse status; earliest commencement date; underlying accrued benefit / early-retirement status',
+    output:'Pre-retirement survivor benefit / QPSA-type branch',
+    commencement:'At earliest permitted survivor commencement date; timing adjusted if before/after Earliest Commencement Date',
+    service:'Vesting gate; early-retirement eligibility may affect Earliest Commencement Date',
+    compensation:'Through underlying Accrued Benefit',
+    adjustments:'Survivorship commencement timing adjustment under §1.2(e); spouse-consent and automatic spouse-benefit framework under Article 6',
+    forms:'Automatic spouse benefit unless properly waived; survivor optional-form constraints',
+    note:'This is the key death-before-retirement programming branch.',
+    pipeline:['state','death before commencement','vested? yes','identify protected spouse / beneficiary','determine earliest commencement date','survivor form + pay']
+  },
+  {
+    id:'S9',
+    scenario:'Death after commencement',
+    stateGroup:'retired participant / in pay',
+    trigger:'retired participant dies after Annuity Starting Date',
+    family:'death / survivor',
+    sections:'§7.2; §1.24; §1.29; Article 6',
+    base:'Post-commencement benefit is controlled by the form already in force at the Annuity Starting Date; under the normal form, at least 36 monthly payments are protected through the Beneficiary.',
+    inputs:'form in pay status; annuity starting date; protected spouse; number of payments already made; beneficiary identity',
+    output:'Continuing survivor stream or remaining guaranteed payments',
+    commencement:'Immediately under form already in pay status',
+    service:'Not recomputed',
+    compensation:'Not recomputed',
+    adjustments:'Driven by selected form; normal form includes 36-payment floor',
+    forms:'Frozen at Annuity Starting Date',
+    note:'After commencement, the form-of-benefit layer becomes dominant.',
+    pipeline:['state','death after commencement','read form in force','apply survivor / guarantee rule','continue payments']
+  },
+  {
+    id:'S10',
+    scenario:'Reemployment / restoration after distribution',
+    stateGroup:'reemployment / restoration',
+    trigger:'former participant is rehired before 5 consecutive Breaks-in-Service after partial or full distribution',
+    family:'restoration / administration',
+    sections:'§5.3(c)-(d); §5.4(a)-(b); §1.33(c); §2.1(c); §2.2',
+    base:'Potential restoration of forfeited benefit if repayment with interest is made within 5 years of reemployment; no restoration if fully vested or rehired after 5 consecutive Breaks-in-Service.',
+    inputs:'distribution amount; vesting status at prior termination; break-in-service count; rehire date; repayment date; interest rate',
+    output:'Restored pre-termination benefit or no restoration',
+    commencement:'Administrative restoration first; future benefit then recomputed on combined path',
+    service:'Break-in-service logic; pre- and post-termination service',
+    compensation:'Relevant again for future accruals after restoration path',
+    adjustments:'Repayment with interest; new-employee rule if 5 consecutive breaks',
+    forms:'Restoration affects accrued benefit pool before later form election',
+    note:'This is the repair branch. It should be coded separately from ordinary retirement.',
+    pipeline:['state','rehire event','check 5-break rule','check prior distribution / vesting','repayment with interest?','restore or deny restoration']
+  }
+];
+
+function familyClass(f){
+  return f==='retirement' ? 'fam-ret' :
+         f==='deferred vested' ? 'fam-def' :
+         f==='death / survivor' ? 'fam-death' :
+         f==='restoration / administration' ? 'fam-admin' : 'fam-none';
+}
+
+const tbody = document.querySelector('#matrixTable tbody');
+const search = document.getElementById('search');
+const familyFilter = document.getElementById('familyFilter');
+const statusFilter = document.getElementById('statusFilter');
+const metricCount = document.getElementById('metricCount');
+let activeId = null;
+
+function renderTable(){
+  const q = search.value.trim().toLowerCase();
+  const fam = familyFilter.value;
+  const st = statusFilter.value;
+  const filtered = scenarios.filter(s => {
+    const hit = !q || JSON.stringify(s).toLowerCase().includes(q);
+    const hitFam = fam === 'all' || s.family === fam;
+    const hitSt = st === 'all' || s.stateGroup === st;
+    return hit && hitFam && hitSt;
+  });
+  metricCount.textContent = filtered.length;
+  tbody.innerHTML = filtered.map(s => `
+    <tr data-id="${s.id}" class="${activeId===s.id?'active':''}">
+      <td class="nowrap"><strong>${s.id}</strong></td>
+      <td>${s.scenario}</td>
+      <td>${s.stateGroup}</td>
+      <td>${s.trigger}</td>
+      <td><span class="pill ${familyClass(s.family)}">${s.family}</span></td>
+      <td><span class="sec">${s.sections}</span></td>
+      <td>${s.base}</td>
+      <td>${s.inputs}</td>
+      <td>${s.output}</td>
+    </tr>
+  `).join('');
+
+  [...tbody.querySelectorAll('tr')].forEach(tr => tr.addEventListener('click', () => selectScenario(tr.dataset.id)));
+
+  if (filtered.length && (!activeId || !filtered.some(s => s.id===activeId))) selectScenario(filtered[0].id);
+  if (!filtered.length){
+    document.getElementById('detailTitle').textContent = 'No scenario matches the current filter';
+    document.getElementById('detailKV').innerHTML = '';
+    document.getElementById('pipeline').innerHTML = '';
+    document.getElementById('programmingNote').textContent = '';
+  }
+}
+
+function selectScenario(id){
+  activeId = id;
+  [...tbody.querySelectorAll('tr')].forEach(tr => tr.classList.toggle('active', tr.dataset.id === id));
+  const s = scenarios.find(x => x.id === id);
+  if(!s) return;
+  document.getElementById('detailTitle').textContent = `${s.id} · ${s.scenario}`;
+  document.getElementById('detailKV').innerHTML = `
+    <div class="k">State group</div><div>${s.stateGroup}</div>
+    <div class="k">Trigger</div><div>${s.trigger}</div>
+    <div class="k">Benefit family</div><div><span class="pill ${familyClass(s.family)}">${s.family}</span></div>
+    <div class="k">Governing sections</div><div class="sec">${s.sections}</div>
+    <div class="k">Commencement</div><div>${s.commencement}</div>
+    <div class="k">Base rule</div><div>${s.base}</div>
+    <div class="k">Service input</div><div>${s.service}</div>
+    <div class="k">Compensation input</div><div>${s.compensation}</div>
+    <div class="k">Adjustments</div><div>${s.adjustments}</div>
+    <div class="k">Form layer</div><div>${s.forms}</div>
+    <div class="k">Output</div><div>${s.output}</div>
+  `;
+  document.getElementById('pipeline').innerHTML = s.pipeline.map((p,i) => `
+    <div class="node">${p}</div>${i < s.pipeline.length-1 ? '<div class="arrow">→</div>' : ''}
+  `).join('');
+  document.getElementById('programmingNote').textContent = s.note;
+}
+
+search.addEventListener('input', renderTable);
+familyFilter.addEventListener('change', renderTable);
+statusFilter.addEventListener('change', renderTable);
+renderTable();
+</script>
+</body>
+</html>

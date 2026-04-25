@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Condensed Defined Terms DAG — Saint Rose v0.9</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #121820;
+    --panel2: #0f141b;
+    --line: #263241;
+    --text: #eef2f7;
+    --muted: #a6b0bb;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:Arial, Helvetica, sans-serif; }
+  .wrap { display:grid; grid-template-columns:minmax(0,1fr) 400px; min-height:100vh; }
+  .main { padding:18px; }
+  .sidebar { border-left:1px solid var(--line); background:linear-gradient(180deg,var(--panel),var(--panel2)); padding:18px; overflow:auto; }
+  .title-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+  h1 { margin:0; font-size:28px; }
+  .version-pill {
+    display:inline-block; padding:5px 10px; border-radius:999px;
+    background:rgba(96,165,250,0.14); border:1px solid rgba(96,165,250,0.28);
+    color:#dbeafe; font-size:12px; font-weight:700; letter-spacing:0.3px;
+  }
+  .subtitle { margin:0 0 12px 0; color:var(--muted); line-height:1.45; max-width:1100px; }
+  .controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  input[type="text"] {
+    width:360px; max-width:100%;
+    background:#0e141b; color:var(--text);
+    border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; font-size:14px;
+  }
+  .canvas-wrap {
+    position:relative; background:radial-gradient(circle at 50% 45%, #111827 0%, #0b0d10 70%);
+    border:1px solid var(--line); border-radius:18px; overflow:hidden; min-height:900px;
+  }
+  svg { display:block; width:100%; height:900px; background:transparent; }
+  .overlay {
+    position:absolute; left:14px; bottom:14px;
+    background:rgba(12,17,25,0.82); border:1px solid var(--line);
+    border-radius:12px; padding:10px 12px; color:var(--muted);
+    font-size:13px; line-height:1.35; max-width:500px; backdrop-filter: blur(6px);
+  }
+  .edge { fill:none; stroke:rgba(164,176,190,0.28); stroke-width:2px; marker-end:url(#arrow); }
+  .node { cursor:pointer; }
+  .node rect {
+    stroke:rgba(255,255,255,0.26);
+    stroke-width:1.5px;
+    rx:14; ry:14;
+  }
+  .node.mixed rect { stroke:#ffffff; stroke-width:2.2px; stroke-dasharray:5 4; }
+  .node text {
+    fill:#eef2f7; font-size:13px; font-weight:700;
+    paint-order: stroke; stroke:rgba(11,13,16,0.96);
+    stroke-width:5px; stroke-linejoin:round; pointer-events:none;
+  }
+  .dim { opacity:0.09; }
+  .hi-edge { stroke:rgba(255,255,255,0.95) !important; stroke-width:3px !important; }
+  .hi-node rect { stroke:#ffffff !important; stroke-width:2.8px !important; }
+  .section { margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+  .section:last-child { border-bottom:0; }
+  .section h2 { margin:0 0 10px 0; font-size:18px; }
+  .kv { display:grid; grid-template-columns:1fr auto; gap:8px; padding:6px 0; border-bottom:1px dashed rgba(166,176,187,0.14); }
+  .kv:last-child { border-bottom:0; }
+  .k { color:var(--muted); }
+  .v { color:var(--text); font-weight:700; }
+  .legend-item { display:grid; grid-template-columns:16px 1fr; gap:10px; align-items:start; margin:10px 0; }
+  .swatch { width:14px; height:14px; border-radius:999px; border:1px solid rgba(255,255,255,0.25); margin-top:3px; }
+  .legend-title { color:var(--text); font-weight:700; margin-bottom:2px; }
+  .legend-desc { color:var(--muted); font-size:12px; line-height:1.35; }
+  .mono { font-family:Consolas, "Courier New", monospace; }
+  .term-title { margin:0 0 8px 0; font-size:17px; color:#ffffff; }
+  .small { font-size:12px; color:var(--muted); }
+  .members { margin-top:8px; }
+  .member { padding:6px 0; border-bottom:1px dashed rgba(166,176,187,0.14); }
+  .member:last-child { border-bottom:0; }
+  @media (max-width: 1200px) {
+    .wrap { grid-template-columns: 1fr; }
+    .sidebar { border-left:0; border-top:1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main class="main">
+    <div class="title-row">
+      <h1>Condensed defined-terms DAG</h1>
+      <span class="version-pill">v0.9</span>
+    </div>
+    <p class="subtitle">
+      Sample document used:
+      <a href="sandbox:/mnt/data/2019%20Plan%20Document.pdf" style="color:#93c5fd">2019 Plan Document.pdf</a>.
+      This is the <strong>condensation graph</strong> of the defined-term dependency network.
+      Every strongly connected component is collapsed into one super-node. The layout is a
+      <strong>Sugiyama layered DAG</strong> with roots on the left and more composite structures to the right.
+      Super-node size is proportional to total in-flow from the original definition graph.
+    </p>
+
+    <div class="controls">
+      <input id="searchBox" type="text" placeholder="Search a term or super-node member">
+    </div>
+
+    <div class="canvas-wrap">
+      <svg id="dag" viewBox="0 0 1239.76 1325.55" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="overlay">
+        This view exposes the semantic architecture more explicitly than the force layout:
+        primitive inputs sit upstream, the mutual-definition core is condensed, and downstream composites sit to the right.
+      </div>
+    </div>
+  </main>
+
+  <aside class="sidebar">
+    <section class="section">
+      <h2>Summary</h2>
+      <div class="kv"><div class="k">Document</div><div class="v">Saint Rose 2019</div></div>
+      <div class="kv"><div class="k">Original terms</div><div class="v">39</div></div>
+      <div class="kv"><div class="k">Condensed super-nodes</div><div class="v">13</div></div>
+      <div class="kv"><div class="k">Condensed edges</div><div class="v">15</div></div>
+      <div class="kv"><div class="k">Layout</div><div class="v">Sugiyama DAG</div></div>
+      <div class="kv"><div class="k">Sizing</div><div class="v">original in-flow</div></div>
+    </section>
+
+    <section class="section">
+      <h2>Semantic clusters</h2>
+      <div id="legend"></div>
+    </section>
+
+    <section class="section">
+      <h2>Selected / hovered super-node</h2>
+      <div id="info" class="small">Nothing selected yet.</div>
+    </section>
+  </aside>
+</div>
+
+<script>
+const nodes = [{"cid": "0", "x": 807.2579999999999, "y": 469.46650000000017, "w": 130.625, "h": 85.7641, "label": "Election Period", "members": ["Election Period"], "memberCount": 1, "dominantCluster": 1, "mixedCluster": false, "clusterCounts": {"1": 1}, "inMetric": 2, "outMetric": 0, "condIn": 1, "condOut": 0, "description": "Employment, service, compensation, timing, and administrative mechanics.", "color": "#34d399"}, {"cid": "1", "x": 1117.3, "y": 980.0915000000001, "w": 147.782, "h": 85.7641, "label": "Protected Spouse", "members": ["Protected Spouse"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 5, "outMetric": 0, "condIn": 2, "condOut": 0, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "2", "x": 1117.3, "y": 586.8960000000001, "w": 164.9295, "h": 85.7641, "label": "Defined Benefit Plan", "members": ["Defined Benefit Plan"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 4, "outMetric": 0, "condIn": 3, "condOut": 0, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "3", "x": 1117.3, "y": 725.4440000000001, "w": 124.03200000000001, "h": 85.7641, "label": "PBGC", "members": ["PBGC"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 1, "outMetric": 0, "condIn": 1, "condOut": 0, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "4", "x": 807.2579999999999, "y": 717.5210000000001, "w": 130.625, "h": 85.7641, "label": "ERISA", "members": ["ERISA"], "memberCount": 1, "dominantCluster": 0, "mixedCluster": false, "clusterCounts": {"0": 1}, "inMetric": 2, "outMetric": 2, "condIn": 1, "condOut": 2, "description": "Foundational plan-law framework: overarching legal and plan-identity terms.", "color": "#60a5fa"}, {"cid": "5", "x": 807.2579999999999, "y": 965.5755, "w": 265.2115, "h": 85.7641, "label": "Normal Form of Retirement Income", "members": ["Normal Form of Retirement Income"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 3, "outMetric": 0, "condIn": 1, "condOut": 0, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "6", "x": 807.2579999999999, "y": 1104.1235, "w": 130.625, "h": 85.7641, "label": "Committee", "members": ["Committee"], "memberCount": 1, "dominantCluster": 1, "mixedCluster": false, "clusterCounts": {"1": 1}, "inMetric": 2, "outMetric": 1, "condIn": 1, "condOut": 1, "description": "Employment, service, compensation, timing, and administrative mechanics.", "color": "#34d399"}, {"cid": "7", "x": 807.2579999999999, "y": 1242.6629500000001, "w": 160.968, "h": 85.7641, "label": "Straight Life Annuity", "members": ["Straight Life Annuity"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 2, "outMetric": 0, "condIn": 1, "condOut": 0, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "8", "x": 807.2579999999999, "y": 330.8900000000001, "w": 238.8205, "h": 85.7641, "label": "Social Security Retirement Age", "members": ["Social Security Retirement Age"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 1, "outMetric": 0, "condIn": 1, "condOut": 0, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "9", "x": 427.91350000000006, "y": 717.5210000000001, "w": 303.468, "h": 95.0, "label": "Mutual-definition core\n(27 terms)", "members": ["Accrued Benefit", "Actuarial Equivalent", "Annuity", "Annuity Starting Date", "Applicable Computation Period", "Average Compensation", "Beneficiary", "Board of Trustees", "Company", "Compensation", "Controlled or Affiliated Service Group", "Disability", "Earliest Commencement Date", "Effective Date / Supplemental Effective Date", "Employee / Eligible Employee / Leased Employee", "Employer", "Highly Compensated Employee / Nonhighly Compensated Employee", "Participant", "Plan", "Plan Year", "Retirement", "Retirement Dates", "Service", "Severance From Employment Date", "Trust Agreement / Insurance Contract", "Trust Fund / Pension Fund", "Trustee / Funding Agent"], "memberCount": 27, "dominantCluster": 2, "mixedCluster": true, "clusterCounts": {"2": 9, "3": 4, "1": 9, "4": 2, "5": 2, "0": 1}, "inMetric": 124, "outMetric": 133, "condIn": 2, "condOut": 8, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "10", "x": 110.5907, "y": 717.5210000000001, "w": 141.1795, "h": 85.7641, "label": "Anniversary Date", "members": ["Anniversary Date"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 0, "outMetric": 2, "condIn": 0, "condOut": 1, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "11", "x": 427.91350000000006, "y": 82.84500000000006, "w": 267.843, "h": 85.7641, "label": "Qualified Domestic Relations Order", "members": ["Qualified Domestic Relations Order"], "memberCount": 1, "dominantCluster": 2, "mixedCluster": false, "clusterCounts": {"2": 1}, "inMetric": 1, "outMetric": 0, "condIn": 1, "condOut": 0, "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts.", "color": "#f59e0b"}, {"cid": "12", "x": 110.5907, "y": 206.91500000000013, "w": 104.234, "h": 85.7641, "label": "Code", "members": ["Code"], "memberCount": 1, "dominantCluster": 0, "mixedCluster": false, "clusterCounts": {"0": 1}, "inMetric": 0, "outMetric": 9, "condIn": 0, "condOut": 3, "description": "Foundational plan-law framework: overarching legal and plan-identity terms.", "color": "#60a5fa"}];
+const edges = [{"source": "4", "target": "2", "points": [[872.7795, 708.5055000000001], [944.4854999999999, 708.5055000000001], [1049.375, 708.5055000000001], [1049.375, 708.5055000000001], [1049.375, 708.5055000000001], [1049.375, 638.0345000000001], [1049.375, 638.0345000000001]]}, {"source": "4", "target": "3", "points": [[872.637, 734.4595], [872.637, 734.4595], [1047.2849999999999, 734.4595], [1047.2849999999999, 734.4595]]}, {"source": "6", "target": "1", "points": [[807.9135, 1061.1265], [807.9135, 1039.6375], [807.9135, 1018.139], [807.9135, 1018.139], [807.9135, 1018.139], [1035.315, 1018.139], [1035.315, 1018.139]]}, {"source": "9", "target": "0", "points": [[571.734, 669.6980000000001], [571.734, 597.6120000000001], [571.734, 469.46650000000017], [571.734, 469.46650000000017], [571.734, 469.46650000000017], [733.7375000000001, 469.46650000000017], [733.7375000000001, 469.46650000000017]]}, {"source": "9", "target": "1", "points": [[504.4455, 765.0495000000001], [504.4455, 848.659], [504.4455, 1013.3035], [504.4455, 1013.3035], [504.4455, 1013.3035], [1035.5049999999999, 1013.3035], [1035.5049999999999, 1013.3035]]}, {"source": "9", "target": "2", "points": [[575.6954999999999, 669.869], [575.6954999999999, 637.7495], [575.6954999999999, 601.1935], [575.6954999999999, 601.1935], [575.6954999999999, 601.1935], [1026.5749999999998, 601.1935], [1026.5749999999998, 601.1935]]}, {"source": "9", "target": "4", "points": [[580.0275, 703.2330000000001], [580.0275, 703.2330000000001], [733.8135, 703.2330000000001], [733.8135, 703.2330000000001]]}, {"source": "9", "target": "5", "points": [[579.6665, 731.8185], [633.6265000000001, 731.8185], [681.25, 731.8185], [681.25, 731.8185], [681.25, 731.8185], [681.25, 914.2375000000001], [681.25, 914.2375000000001]]}, {"source": "9", "target": "6", "points": [[427.91350000000006, 765.3155], [427.91350000000006, 868.7515000000001], [427.91350000000006, 1104.1235], [427.91350000000006, 1104.1235], [427.91350000000006, 1104.1235], [733.6995000000001, 1104.1235], [733.6995000000001, 1104.1235]]}, {"source": "9", "target": "7", "points": [[352.7115, 765.0495000000001], [352.7115, 894.316], [352.7115, 1242.6629500000001], [352.7115, 1242.6629500000001], [352.7115, 1242.6629500000001], [718.604, 1242.6629500000001], [718.604, 1242.6629500000001]]}, {"source": "9", "target": "8", "points": [[566.4615, 669.7360000000001], [566.4615, 566.3000000000001], [566.4615, 330.8900000000001], [566.4615, 330.8900000000001], [566.4615, 330.8900000000001], [679.6445, 330.8900000000001], [679.6445, 330.8900000000001]]}, {"source": "10", "target": "9", "points": [[181.4075, 717.5210000000001], [181.4075, 717.5210000000001], [268.23749999999995, 717.5210000000001], [268.23749999999995, 717.5210000000001]]}, {"source": "12", "target": "2", "points": [[111.25, 249.95000000000007], [111.25, 346.5935000000001], [111.25, 572.6080000000001], [111.25, 572.6080000000001], [111.25, 572.6080000000001], [1026.67, 572.6080000000001], [1026.67, 572.6080000000001]]}, {"source": "12", "target": "9", "points": [[163.04399999999998, 206.91500000000013], [214.5435, 206.91500000000013], [285.4135, 206.91500000000013], [285.4135, 206.91500000000013], [285.4135, 206.91500000000013], [285.4135, 662.0315], [285.4135, 662.0315]]}, {"source": "12", "target": "11", "points": [[111.25, 163.88000000000002], [111.25, 128.0650000000001], [111.25, 82.84500000000006], [111.25, 82.84500000000006], [111.25, 82.84500000000006], [285.70799999999997, 82.84500000000006], [285.70799999999997, 82.84500000000006]]}];
+const legend = [{"cluster": 0, "count": 3, "color": "#60a5fa", "description": "Foundational plan-law framework: overarching legal and plan-identity terms."}, {"cluster": 1, "count": 11, "color": "#34d399", "description": "Employment, service, compensation, timing, and administrative mechanics."}, {"cluster": 2, "count": 17, "color": "#f59e0b", "description": "Benefit entitlement, participant status, retirement events, and benefit commencement concepts."}, {"cluster": 3, "count": 4, "color": "#f472b6", "description": "Funding vehicle and annuity/trust infrastructure."}, {"cluster": 4, "count": 2, "color": "#a78bfa", "description": "Sponsorship and governance actors."}, {"cluster": 5, "count": 2, "color": "#f87171", "description": "Employer-scope and controlled-group structure."}];
+const svg = document.getElementById('dag');
+const ns = "http://www.w3.org/2000/svg";
+const searchBox = document.getElementById('searchBox');
+const info = document.getElementById('info');
+
+document.getElementById('legend').innerHTML = legend.map(d => `
+  <div class="legend-item">
+    <span class="swatch" style="background:${d.color}"></span>
+    <div>
+      <div class="legend-title">cluster ${d.cluster + 1} (${d.count} terms)</div>
+      <div class="legend-desc">${d.description}</div>
+    </div>
+  </div>`).join('');
+
+const nodeMap = new Map(nodes.map(d => [d.cid, d]));
+const outgoing = new Map(nodes.map(d => [d.cid, []]));
+const incoming = new Map(nodes.map(d => [d.cid, []]));
+edges.forEach(e => {
+  outgoing.get(e.source).push(e.target);
+  incoming.get(e.target).push(e.source);
+});
+
+const defs = document.createElementNS(ns, 'defs');
+const marker = document.createElementNS(ns, 'marker');
+marker.setAttribute('id', 'arrow');
+marker.setAttribute('viewBox', '0 -5 10 10');
+marker.setAttribute('refX', '14');
+marker.setAttribute('refY', '0');
+marker.setAttribute('markerWidth', '7');
+marker.setAttribute('markerHeight', '7');
+marker.setAttribute('orient', 'auto');
+const path = document.createElementNS(ns, 'path');
+path.setAttribute('d', 'M0,-5L10,0L0,5');
+path.setAttribute('fill', 'rgba(164,176,190,0.65)');
+marker.appendChild(path);
+defs.appendChild(marker);
+svg.appendChild(defs);
+
+const edgeLayer = document.createElementNS(ns, 'g');
+const nodeLayer = document.createElementNS(ns, 'g');
+svg.appendChild(edgeLayer);
+svg.appendChild(nodeLayer);
+
+function svgPath(points) {
+  if (!points.length) return '';
+  return 'M ' + points.map(p => `${p[0]} ${p[1]}`).join(' L ');
+}
+
+function multilineText(group, x, y, lines) {
+  lines.forEach((line, i) => {
+    const t = document.createElementNS(ns, 'text');
+    t.setAttribute('x', x);
+    t.setAttribute('y', y + i * 16);
+    t.setAttribute('text-anchor', 'middle');
+    t.textContent = line;
+    group.appendChild(t);
+  });
+}
+
+const edgeEls = [];
+edges.forEach(e => {
+  const p = document.createElementNS(ns, 'path');
+  p.setAttribute('class', 'edge');
+  p.setAttribute('d', svgPath(e.points));
+  p.dataset.source = e.source;
+  p.dataset.target = e.target;
+  edgeLayer.appendChild(p);
+  edgeEls.push(p);
+});
+
+const nodeEls = [];
+nodes.forEach(n => {
+  const g = document.createElementNS(ns, 'g');
+  g.setAttribute('class', 'node' + (n.mixedCluster ? ' mixed' : ''));
+  g.dataset.cid = n.cid;
+
+  const rect = document.createElementNS(ns, 'rect');
+  rect.setAttribute('x', n.x - n.w / 2);
+  rect.setAttribute('y', n.y - n.h / 2);
+  rect.setAttribute('width', n.w);
+  rect.setAttribute('height', n.h);
+  rect.setAttribute('fill', n.color);
+  g.appendChild(rect);
+
+  const lines = n.label.split('\n');
+  const startY = n.y - ((lines.length - 1) * 16) / 2 + 4;
+  multilineText(g, n.x, startY, lines);
+
+  g.addEventListener('mouseover', () => {
+    highlight(n.cid);
+    setInfo(n.cid);
+  });
+  g.addEventListener('mouseout', () => {
+    if (selectedCid) {
+      highlight(selectedCid);
+      setInfo(selectedCid);
+    } else {
+      clearHighlight();
+      setInfo(null);
+    }
+  });
+  g.addEventListener('click', () => {
+    selectedCid = n.cid;
+    highlight(n.cid);
+    setInfo(n.cid);
+  });
+
+  nodeLayer.appendChild(g);
+  nodeEls.push(g);
+});
+
+let selectedCid = null;
+
+function setInfo(cid) {
+  if (cid === null || !nodeMap.has(cid)) {
+    info.innerHTML = '<div class="small">Nothing selected yet.</div>';
+    return;
+  }
+  const d = nodeMap.get(cid);
+  const ins = incoming.get(cid) || [];
+  const outs = outgoing.get(cid) || [];
+  const clusterMix = Object.entries(d.clusterCounts)
+    .map(([k,v]) => `cluster ${Number(k)+1}: ${v}`)
+    .join(' · ');
+
+  info.innerHTML = `
+    <div class="term-title mono">${escapeHtml(d.label.replace('\n', ' / '))}</div>
+    <div class="small" style="margin-bottom:8px">
+      members ${d.memberCount} · inflow ${d.inMetric} · outflow ${d.outMetric} · condensed in ${d.condIn} · condensed out ${d.condOut}
+    </div>
+    <div class="small" style="margin-bottom:8px">${escapeHtml(d.description)}</div>
+    <div class="small" style="margin-bottom:10px">cluster composition: ${escapeHtml(clusterMix)}</div>
+    <div class="small">Contained defined terms (${d.members.length})</div>
+    <div class="members">${d.members.map(x => `<div class="member mono">${escapeHtml(x)}</div>`).join('')}</div>
+    <div class="small" style="margin-top:10px">Incoming super-nodes (${ins.length})</div>
+    <div class="members">${ins.map(x => `<div class="member mono">${escapeHtml(nodeMap.get(x).label.replace('\n',' / '))}</div>`).join('') || '<div class="small">None</div>'}</div>
+    <div class="small" style="margin-top:10px">Outgoing super-nodes (${outs.length})</div>
+    <div class="members">${outs.map(x => `<div class="member mono">${escapeHtml(nodeMap.get(x).label.replace('\n',' / '))}</div>`).join('') || '<div class="small">None</div>'}</div>
+  `;
+}
+
+function escapeHtml(s) {
+  return s
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+}
+
+function highlight(cid) {
+  const neighborhood = new Set([cid, ...(incoming.get(cid) || []), ...(outgoing.get(cid) || [])]);
+  nodeEls.forEach(el => {
+    const match = neighborhood.has(el.dataset.cid);
+    el.classList.toggle('dim', !match);
+    el.classList.toggle('hi-node', match);
+  });
+  edgeEls.forEach(el => {
+    const match = el.dataset.source === cid || el.dataset.target === cid;
+    el.classList.toggle('dim', !match);
+    el.classList.toggle('hi-edge', match);
+  });
+}
+
+function clearHighlight() {
+  nodeEls.forEach(el => { el.classList.remove('dim', 'hi-node'); });
+  edgeEls.forEach(el => { el.classList.remove('dim', 'hi-edge'); });
+}
+
+searchBox.addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  if (!q) {
+    if (selectedCid) {
+      highlight(selectedCid);
+      setInfo(selectedCid);
+    } else {
+      clearHighlight();
+      setInfo(null);
+    }
+    return;
+  }
+  const hit = nodes.find(n =>
+    n.label.toLowerCase().includes(q) ||
+    n.members.some(m => m.toLowerCase().includes(q))
+  );
+  if (hit) {
+    selectedCid = hit.cid;
+    highlight(hit.cid);
+    setInfo(hit.cid);
+  }
+});
+</script>
+</body>
+</html>
